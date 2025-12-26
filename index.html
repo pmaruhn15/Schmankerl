@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SportFinder München</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 360px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .controls {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .control-group label .icon {
+            margin-right: 6px;
+        }
+
+        /* Standort-Eingabe */
+        .location-input {
+            display: flex;
+            gap: 8px;
+        }
+
+        .location-input input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .location-input input:focus {
+            outline: none;
+            border-color: #43a047;
+        }
+
+        .btn-gps {
+            padding: 10px 14px;
+            background: #43a047;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .btn-gps:hover {
+            background: #2e7d32;
+        }
+
+        .btn-gps:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Verkehrsmittel */
+        .transport-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .transport-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .transport-btn:hover {
+            border-color: #43a047;
+        }
+
+        .transport-btn.active {
+            border-color: #43a047;
+            background: #e8f5e9;
+        }
+
+        .transport-btn .emoji {
+            font-size: 1.5rem;
+            display: block;
+        }
+
+        .transport-btn .label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #43a047;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: #43a047;
+        }
+
+        /* Dropdown */
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #43a047;
+        }
+
+        /* Wochentag-Checkboxen */
+        .weekday-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .weekday-btn {
+            padding: 8px 4px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .weekday-btn:hover {
+            border-color: #43a047;
+        }
+
+        .weekday-btn.active {
+            border-color: #43a047;
+            background: #43a047;
+            color: white;
+        }
+
+        /* Ergebnisse */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .results-list {
+            overflow-y: auto;
+            max-height: 250px;
+        }
+
+        .result-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .result-item:hover {
+            background: #f9f9f9;
+        }
+
+        .result-item.highlighted {
+            background: #e8f5e9;
+            border-left: 3px solid #43a047;
+        }
+
+        .result-sport {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-detail {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .result-distance {
+            color: #43a047;
+            font-weight: 600;
+        }
+
+        /* Karte */
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        /* Popup */
+        .leaflet-popup-content {
+            min-width: 200px;
+        }
+
+        .popup-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .popup-detail {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .popup-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: #43a047;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .popup-link:hover {
+            background: #2e7d32;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 10px 15px;
+            background: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .footer a {
+            color: #43a047;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+            }
+
+            #map {
+                height: 50vh;
+            }
+        }
+
+        /* Loading-Indikator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        /* Isochrone-Legende */
+        .isochrone-info {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: #2e7d32;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .isochrone-info.active {
+            display: block;
+        }
+
+        /* Marker-Kategorien */
+        .marker-fitness { background-color: #ff9800; }
+        .marker-yoga { background-color: #9c27b0; }
+        .marker-ball { background-color: #4caf50; }
+        .marker-tanz { background-color: #e91e63; }
+        .marker-other { background-color: #2196f3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="header">
+                <h1>🏃 SportFinder München</h1>
+                <p>Finde FreizeitSport-Kurse in deiner Nähe</p>
+            </div>
+
+            <div class="controls">
+                <!-- Standort -->
+                <div class="control-group">
+                    <label><span class="icon">📍</span>Dein Standort</label>
+                    <div class="location-input">
+                        <input type="text" id="addressInput" placeholder="Adresse eingeben...">
+                        <button class="btn-gps" id="gpsBtn" title="GPS-Standort nutzen">📍</button>
+                    </div>
+                    <div class="isochrone-info" id="isochroneInfo">
+                        ✓ Erreichbarkeitszone wird angezeigt
+                    </div>
+                </div>
+
+                <!-- Verkehrsmittel -->
+                <div class="control-group">
+                    <label><span class="icon">🚴</span>Verkehrsmittel</label>
+                    <div class="transport-options">
+                        <button class="transport-btn active" data-mode="cycling-regular">
+                            <span class="emoji">🚴</span>
+                            <span class="label">Fahrrad</span>
+                        </button>
+                        <button class="transport-btn" data-mode="foot-walking">
+                            <span class="emoji">🚶</span>
+                            <span class="label">Zu Fuß</span>
+                        </button>
+                        <button class="transport-btn" data-mode="driving-car">
+                            <span class="emoji">🚗</span>
+                            <span class="label">Auto</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reisezeit -->
+                <div class="control-group">
+                    <label><span class="icon">⏱️</span>Maximale Reisezeit</label>
+                    <div class="slider-container">
+                        <input type="range" id="timeSlider" min="5" max="45" value="15" step="5">
+                        <span class="slider-value" id="timeValue">15 min</span>
+                    </div>
+                </div>
+
+                <!-- Sportart -->
+                <div class="control-group">
+                    <label><span class="icon">🏀</span>Sportart</label>
+                    <select id="sportFilter">
+                        <option value="">Alle Sportarten</option>
+                    </select>
+                </div>
+
+                <!-- Wochentag -->
+                <div class="control-group">
+                    <label><span class="icon">📅</span>Wochentag</label>
+                    <div class="weekday-grid">
+                        <button class="weekday-btn active" data-day="Montag">Mo</button>
+                        <button class="weekday-btn active" data-day="Dienstag">Di</button>
+                        <button class="weekday-btn active" data-day="Mittwoch">Mi</button>
+                        <button class="weekday-btn active" data-day="Donnerstag">Do</button>
+                        <button class="weekday-btn active" data-day="Freitag">Fr</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ergebnisse -->
+            <div class="results-header">
+                <span class="results-count"><span id="resultCount">122</span> Kurse gefunden</span>
+            </div>
+            <div class="results-list" id="resultsList"></div>
+
+            <div class="footer">
+                Daten: <a href="https://opendata.muenchen.de" target="_blank">opendata.muenchen.de</a> |
+                Hallensportprogramm 2025-2026<br>
+                Lizenz: CC BY | Ein <a href="https://datengartln.de" target="_blank">Datengartln</a> Schmankerl
+            </div>
+        </aside>
+
+        <div id="map"></div>
+    </div>
+
+    <div class="loading" id="loading">
+        🔄 Berechne Erreichbarkeit...
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ============================================
+        // DATEN - Hallensportprogramm 2025-2026
+        // ============================================
+        const kurse = [
+            {"id":1,"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"20:00","ende":"21:30","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":2,"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","strasse":"Droste-Hülshoff-Str.","hausnummer":"9","stadtteil":"Laim","schule":"Grundschule Droste Hülshoff Straße 9","lat":48.1279771401509,"lng":11.5075067600768,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":3,"sportart":"Basketball","detail":"","wochentag":"Dienstag","start":"20:00","ende":"21:30","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":4,"sportart":"Basketball","detail":"","wochentag":"Montag","start":"19:00","ende":"20:30","strasse":"Mariahilfplatz","hausnummer":"18","stadtteil":"Au","schule":"Staatl. GS Mariahilfplatz","lat":48.1246735599684,"lng":11.5820517686975,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":5,"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Haagerstr.","hausnummer":"18","stadtteil":"Berg am Laim","schule":"Grundschule an der Haagerstraße","lat":48.1256629590613,"lng":11.6093521360076,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":6,"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","strasse":"Haagerstr.","hausnummer":"18","stadtteil":"Berg am Laim","schule":"Grundschule an der Haagerstraße","lat":48.1256629590613,"lng":11.6093521360076,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/basketball-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":7,"sportart":"BodyART","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodyart-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":8,"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Böglstr.","hausnummer":"10","stadtteil":"Perlach","schule":"Grundschule am Pfanzeltplatz 10","lat":48.100660948552,"lng":11.6346674370314,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":9,"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Camerloherstr.","hausnummer":"110","stadtteil":"Laim","schule":"Grundschule an der Camerloherstr. 110","lat":48.1346189745865,"lng":11.4940686470807,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":10,"sportart":"Bodystyling","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","strasse":"Hildegard-von-Bingen-Anger","hausnummer":"4","stadtteil":"Harthof","schule":"Grundschule am Hildegard-von-Bingen-Anger 4","lat":48.2102916294354,"lng":11.5703685254972,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":11,"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":12,"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":13,"sportart":"Bodystyling","detail":"","wochentag":"Dienstag","start":"17:30","ende":"18:30","strasse":"Fernpaßstr.","hausnummer":"41","stadtteil":"Sendling","schule":"Grund-und Mittelschule an der Fernpaßstr. 41","lat":48.1209665824741,"lng":11.5220169446252,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":14,"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Hirschbergstr.","hausnummer":"33","stadtteil":"Neuhausen","schule":"Städtische Berufsschule für Körperpflege","lat":48.1479112781728,"lng":11.5300993440667,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":15,"sportart":"Bodystyling","detail":"Bodystyling mit Flexibar","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":16,"sportart":"Bodystyling","detail":"Bodystyling + Dance","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Hirschbergstr.","hausnummer":"33","stadtteil":"Neuhausen","schule":"Städtische Berufsschule für Körperpflege","lat":48.1479112781728,"lng":11.5300993440667,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/bodystyling-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":17,"sportart":"Core - Power für Bauch und Rücken","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/core-power-fuer-bauch-und-ruecken-freizeitsport-muenchen"},
+            {"id":18,"sportart":"Core - Power für Bauch und Rücken","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Damenstiftstr.","hausnummer":"3","stadtteil":"Stadtmitte","schule":"Städtische Salvator-Realschule","lat":48.1370568078445,"lng":11.5690812361836,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/core-power-fuer-bauch-und-ruecken-freizeitsport-muenchen"},
+            {"id":19,"sportart":"Eltern-Kind-Turnen","detail":"Eltern-Kind-Turnen 0-3,5 Jahre","wochentag":"Donnerstag","start":"10:45","ende":"12:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":20,"sportart":"Eltern-Kind-Turnen","detail":"Eltern-Kind-Turnen 0-4 Jahre","wochentag":"Dienstag","start":"09:45","ende":"11:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":21,"sportart":"Eltern-Kind-Turnen","detail":"Eltern-Kind-Turnen 0-4 Jahre","wochentag":"Mittwoch","start":"14:30","ende":"15:45","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":22,"sportart":"Eltern-Kind-Turnen","detail":"Eltern-Kind-Turnen 3-6 Jahre","wochentag":"Mittwoch","start":"15:45","ende":"17:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":23,"sportart":"Fatburn","detail":"","wochentag":"Mittwoch","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fatburn-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":24,"sportart":"Female Moves","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Damenstiftstr.","hausnummer":"3","stadtteil":"Stadtmitte","schule":"Städtische Salvator-Realschule","lat":48.1370568078445,"lng":11.5690812361836,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/female-moves-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":25,"sportart":"Fitness Classic","detail":"Fitness + Balance","wochentag":"Montag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Anita-Augspurg-Berufsoberschule für Sozialwesen","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":26,"sportart":"Fitness Classic","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":27,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Droste-Hülshoff-Str.","hausnummer":"9","stadtteil":"Laim","schule":"Grundschule Droste Hülshoff Straße 9","lat":48.1279771401509,"lng":11.5075067600768,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":28,"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","strasse":"Antonienstr.","hausnummer":"6","stadtteil":"Schwabing","schule":"Berufl. Schulzentrum Alice Bendix","lat":48.1646837125794,"lng":11.5896287591855,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":29,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Bäckerstr.","hausnummer":"58","stadtteil":"Pasing","schule":"Anne-Frank Realschule","lat":48.1390086683869,"lng":11.4609136868018,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":30,"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Camerloherstr.","hausnummer":"110","stadtteil":"Laim","schule":"Grundschule an der Camerloherstr. 110","lat":48.1346189745865,"lng":11.4940686470807,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":31,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":32,"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"18:30","ende":"19:30","strasse":"Feldbergstr.","hausnummer":"85","stadtteil":"Trudering","schule":"Mittelschule an der Feldbergstr. 85","lat":48.1177097702945,"lng":11.6679835260961,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":33,"sportart":"Fitness Classic","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"7","stadtteil":"Hauptbahnhof","schule":"Städtisches Luisengymnasium","lat":48.1427246062633,"lng":11.5615927987124,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":34,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Mariahilfplatz","hausnummer":"18","stadtteil":"Au","schule":"Staatl. GS Mariahilfplatz","lat":48.1246735599684,"lng":11.5820517686975,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":35,"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Meindlstr.","hausnummer":"8","stadtteil":"Harras","schule":"Staatliche Dieter-Hildebrandt-Wirtschaftsschule","lat":48.1187884391627,"lng":11.5379845551616,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":36,"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Simmernstr.","hausnummer":"2","stadtteil":"Schwabing","schule":"Mittelschule an der Simmernstr. 2","lat":48.1673841294298,"lng":11.5829229048892,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":37,"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:30","ende":"19:30","strasse":"Wörthstr.","hausnummer":"2","stadtteil":"Haidhausen","schule":"Mittelschule an der Wörthstr. 2","lat":48.1317328376132,"lng":11.5979120044264,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":38,"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","strasse":"Wörthstr.","hausnummer":"2","stadtteil":"Haidhausen","schule":"Mittelschule an der Wörthstr. 2","lat":48.1317328376132,"lng":11.5979120044264,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":39,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:30","ende":"19:30","strasse":"Fernpaßstr.","hausnummer":"41","stadtteil":"Sendling","schule":"Grund-und Mittelschule an der Fernpaßstr. 41","lat":48.1209665824741,"lng":11.5220169446252,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":40,"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"7","stadtteil":"Hauptbahnhof","schule":"Städtisches Luisengymnasium","lat":48.1427246062633,"lng":11.5615927987124,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":41,"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Memeler Str.","hausnummer":"53","stadtteil":"Bogenhausen","schule":"Memeler Str. 53 Sportanlage","lat":48.1534210212361,"lng":11.6380955466952,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":42,"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":43,"sportart":"Fitness Classic","detail":"Fitness Classic / Energym","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-classic-das-staedtische-freizeitsport-angebot-muenchen"},
+            {"id":44,"sportart":"Fitness für Frauen","detail":"Fitness für Frauen mit Faszientraining","wochentag":"Montag","start":"08:30","ende":"09:30","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-fuer-frauen-freizeitsport-angebot-muenchen"},
+            {"id":45,"sportart":"Fitness Power","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","strasse":"Canisiusplatz","hausnummer":"2","stadtteil":"Großhadern","schule":"Grundschule am Canisiusplatz 2","lat":48.1137719374883,"lng":11.4807220191537,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-power-freizeitsport-angebot-muenchen"},
+            {"id":46,"sportart":"Fitness Power","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:15","strasse":"Hiltenspergerstr.","hausnummer":"72","stadtteil":"Schwabing","schule":"Grundschule an der Hiltenspergerstr. 72","lat":48.1650735397573,"lng":11.5668824817947,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-power-freizeitsport-angebot-muenchen"},
+            {"id":47,"sportart":"Fitness Power","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Hirschbergstr.","hausnummer":"33","stadtteil":"Neuhausen","schule":"Städtische Berufsschule für Körperpflege","lat":48.1479112781728,"lng":11.5300993440667,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/fitness-power-freizeitsport-angebot-muenchen"},
+            {"id":48,"sportart":"Functional Training","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","strasse":"Lerchenauerstr.","hausnummer":"322","stadtteil":"Feldmoching","schule":"Grundschule an der Lerchenauerstr.322","lat":48.2142946460067,"lng":11.5311786746011,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/functional-training-freizeitsport-angebot-muenchen"},
+            {"id":49,"sportart":"Functional Training","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/functional-training-freizeitsport-angebot-muenchen"},
+            {"id":50,"sportart":"Generation plus","detail":"","wochentag":"Montag","start":"09:45","ende":"10:45","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/generation-plus-freizeitsport-angebot-muenchen"},
+            {"id":51,"sportart":"Generation plus","detail":"","wochentag":"Donnerstag","start":"09:45","ende":"10:45","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/generation-plus-freizeitsport-angebot-muenchen"},
+            {"id":52,"sportart":"Generation plus","detail":"","wochentag":"Dienstag","start":"09:30","ende":"10:30","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/generation-plus-freizeitsport-angebot-muenchen"},
+            {"id":53,"sportart":"HIIT","detail":"High Intensity Interval Training","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"7","stadtteil":"Hauptbahnhof","schule":"Städtisches Luisengymnasium","lat":48.1427246062633,"lng":11.5615927987124,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/hiit-high-intensity-interval-training-freizeitsport-muenchen"},
+            {"id":54,"sportart":"HIIT","detail":"High Intensity Interval Training","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/hiit-high-intensity-interval-training-freizeitsport-muenchen"},
+            {"id":55,"sportart":"Kickbox-Power","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/kickbox-power-freizeitsport-muenchen"},
+            {"id":56,"sportart":"Mobility Stretching","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/mobilitystretching-freizeitsport-muenchen"},
+            {"id":57,"sportart":"Nordic Walking + Gym","detail":"","wochentag":"Dienstag","start":"18:15","ende":"19:30","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Dantestr. 14 (vor dem Dantestadion)","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/nordic-walking-gym-freizeitsport-muenchen"},
+            {"id":58,"sportart":"Pilates","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Antonienstr.","hausnummer":"6","stadtteil":"Schwabing","schule":"Berufl. Schulzentrum Alice Bendix","lat":48.1646837125794,"lng":11.5896287591855,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":59,"sportart":"Pilates","detail":"","wochentag":"Freitag","start":"09:00","ende":"10:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":60,"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"19:30","ende":"20:30","strasse":"Feldbergstr.","hausnummer":"85","stadtteil":"Trudering","schule":"Mittelschule an der Feldbergstr. 85","lat":48.1177097702945,"lng":11.6679835260961,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":61,"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":62,"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":63,"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","strasse":"Mariahilfplatz","hausnummer":"18","stadtteil":"Au","schule":"Staatl. GS Mariahilfplatz","lat":48.1246735599684,"lng":11.5820517686975,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":64,"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Meindlstr.","hausnummer":"8","stadtteil":"Harras","schule":"Staatliche Dieter-Hildebrandt-Wirtschaftsschule","lat":48.1187884391627,"lng":11.5379845551616,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":65,"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":66,"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":67,"sportart":"Pilates","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Memeler Str.","hausnummer":"53","stadtteil":"Bogenhausen","schule":"Memeler Str. 53 Sportanlage","lat":48.1534210212361,"lng":11.6380955466952,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/pilates-freizeitsport-muenchen"},
+            {"id":68,"sportart":"Power Circuit Training","detail":"","wochentag":"Montag","start":"20:00","ende":"21:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/power-circuit-training-das-staedtische-freizeitsport-angebot"},
+            {"id":69,"sportart":"Qi Gong","detail":"","wochentag":"Freitag","start":"10:00","ende":"11:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/qi-gong-freizeitsport-muenchen"},
+            {"id":70,"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Simmernstr.","hausnummer":"2","stadtteil":"Schwabing","schule":"Mittelschule an der Simmernstr. 2","lat":48.1673841294298,"lng":11.5829229048892,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/qi-gong-freizeitsport-muenchen"},
+            {"id":71,"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/qi-gong-freizeitsport-muenchen"},
+            {"id":72,"sportart":"Qi Gong","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/qi-gong-freizeitsport-muenchen"},
+            {"id":73,"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Simmernstr.","hausnummer":"2","stadtteil":"Schwabing","schule":"Mittelschule an der Simmernstr. 2","lat":48.1673841294298,"lng":11.5829229048892,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/qi-gong-freizeitsport-muenchen"},
+            {"id":74,"sportart":"Rücken Fitness","detail":"","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Luisenstr.","hausnummer":"7","stadtteil":"Hauptbahnhof","schule":"Städtisches Luisengymnasium","lat":48.1427246062633,"lng":11.5615927987124,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":75,"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"17:00","ende":"18:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":76,"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Droste-Hülshoff-Str.","hausnummer":"9","stadtteil":"Laim","schule":"Grundschule Droste Hülshoff Straße 9","lat":48.1279771401509,"lng":11.5075067600768,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":77,"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":78,"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":79,"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"20:00","ende":"21:00","strasse":"Simmernstr.","hausnummer":"2","stadtteil":"Schwabing","schule":"Simmernstr. 2","lat":48.1673841294298,"lng":11.5829229048892,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":80,"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":81,"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"08:30","ende":"09:30","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":82,"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"17:30","ende":"18:30","strasse":"Wörthstr.","hausnummer":"2","stadtteil":"Haidhausen","schule":"Mittelschule an der Wörthstr. 2","lat":48.1317328376132,"lng":11.5979120044264,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":83,"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Wörthstr.","hausnummer":"2","stadtteil":"Haidhausen","schule":"Mittelschule an der Wörthstr. 2","lat":48.1317328376132,"lng":11.5979120044264,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":84,"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","strasse":"Bäckerstr.","hausnummer":"58","stadtteil":"Pasing","schule":"Anne-Frank Realschule","lat":48.1390086683869,"lng":11.4609136868018,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":85,"sportart":"Rücken Fitness","detail":"","wochentag":"Montag","start":"14:30","ende":"15:30","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":86,"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Anita-Augspurg-Berufsoberschule für Sozialwesen","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":87,"sportart":"Rücken Fitness","detail":"Rücken Fitness + Faszien-Fitness","wochentag":"Montag","start":"19:00","ende":"20:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":88,"sportart":"Rücken Fitness","detail":"Rücken Fitness + Stretch&Relax","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Böglstr.","hausnummer":"10","stadtteil":"Perlach","schule":"Grundschule am Pfanzeltplatz 10","lat":48.100660948552,"lng":11.6346674370314,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":89,"sportart":"Rücken Fitness","detail":"Rücken Fitness + StretchRelax","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Hirschbergstr.","hausnummer":"33","stadtteil":"Neuhausen","schule":"Städtische Berufsschule für Körperpflege","lat":48.1479112781728,"lng":11.5300993440667,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":90,"sportart":"Rücken Fitness","detail":"Rücken Fitness mit Faszientraining","wochentag":"Mittwoch","start":"17:00","ende":"18:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/ruecken-fitness-freizeitsport-muenchen"},
+            {"id":91,"sportart":"Silent Disco Groove","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/silent-disco-groove-freizeitsport-muenchen"},
+            {"id":92,"sportart":"Step Power","detail":"","wochentag":"Montag","start":"18:00","ende":"18:45","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Anita-Augspurg-Berufsoberschule für Sozialwesen","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/step-power-freizeitsport-muenchen"},
+            {"id":93,"sportart":"Volleyball","detail":"","wochentag":"Mittwoch","start":"20:00","ende":"21:30","strasse":"Auenstr.","hausnummer":"19","stadtteil":"Glockenbach","schule":"Städtische Sporthalle an der Auenstr. 19","lat":48.1245215834237,"lng":11.5689648040697,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/volleyball-freizeitsport-muenchen"},
+            {"id":94,"sportart":"Volleyball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","strasse":"Camerloherstr.","hausnummer":"110","stadtteil":"Laim","schule":"Grundschule an der Camerloherstr. 110","lat":48.1346189745865,"lng":11.4940686470807,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/volleyball-freizeitsport-muenchen"},
+            {"id":95,"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"19:30","ende":"21:30","strasse":"Fernpaßstr.","hausnummer":"41","stadtteil":"Sendling","schule":"Grund-und Mittelschule an der Fernpaßstr. 41","lat":48.1209665824741,"lng":11.5220169446252,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/volleyball-freizeitsport-muenchen"},
+            {"id":96,"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","strasse":"Keilberthstr.","hausnummer":"6","stadtteil":"Freimann","schule":"Grundschule an der Keilberthstr. 6","lat":48.2051990314066,"lng":11.6006378717619,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/volleyball-freizeitsport-muenchen"},
+            {"id":97,"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"20:00","ende":"22:00","strasse":"Lerchenauerstr.","hausnummer":"322","stadtteil":"Feldmoching","schule":"Grundschule an der Lerchenauerstr.322","lat":48.2142946460067,"lng":11.5311786746011,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/volleyball-freizeitsport-muenchen"},
+            {"id":98,"sportart":"Yoga","detail":"Yin Yoga","wochentag":"Donnerstag","start":"20:30","ende":"21:30","strasse":"Guldeinstr.","hausnummer":"27","stadtteil":"Westend","schule":"Grundschule an der Guldeinstr. 27","lat":48.1383291635933,"lng":11.5328140483901,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yin-yoga-freizeitsport-muenchen"},
+            {"id":99,"sportart":"Yoga","detail":"","wochentag":"Donnerstag","start":"19:30","ende":"20:30","strasse":"Guldeinstr.","hausnummer":"27","stadtteil":"Westend","schule":"Grundschule an der Guldeinstr. 27","lat":48.1383291635933,"lng":11.5328140483901,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":100,"sportart":"Yoga","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Wörthstr.","hausnummer":"2","stadtteil":"Haidhausen","schule":"Mittelschule an der Wörthstr. 2","lat":48.1317328376132,"lng":11.5979120044264,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":101,"sportart":"Yoga","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":102,"sportart":"Yoga","detail":"","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Damenstiftstr.","hausnummer":"3","stadtteil":"Stadtmitte","schule":"Städtische Salvator-Realschule","lat":48.1370568078445,"lng":11.5690812361836,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":103,"sportart":"Yoga","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"7","stadtteil":"Hauptbahnhof","schule":"Städtisches Luisengymnasium","lat":48.1427246062633,"lng":11.5615927987124,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":104,"sportart":"Yoga","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":105,"sportart":"Yoga","detail":"Yoga Flow","wochentag":"Montag","start":"18:00","ende":"19:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":106,"sportart":"Yoga","detail":"Yoga Flow mit Meditation","wochentag":"Montag","start":"19:00","ende":"20:30","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":107,"sportart":"Yoga","detail":"Yoga für Anfänger und Generation plus","wochentag":"Dienstag","start":"17:00","ende":"18:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":108,"sportart":"Yoga","detail":"Yoga für Anfänger und Generation plus","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Stuntzstr.","hausnummer":"55","stadtteil":"Bogenhausen","schule":"Mittelschule an der Stuntzstr. 55","lat":48.141236964191,"lng":11.622705815434,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":109,"sportart":"Yoga","detail":"Yoga für den Rücken","wochentag":"Dienstag","start":"08:30","ende":"09:45","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":110,"sportart":"Yoga","detail":"Yoga mit Meditation","wochentag":"Dienstag","start":"19:00","ende":"20:30","strasse":"Thalkirchnerstr.","hausnummer":"209","stadtteil":"Thalkirchen","schule":"Bezirkssportanlage Thalkirchnerstr. 209","lat":48.1063728062163,"lng":11.5460941383408,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/yoga-freizeitsport-muenchen"},
+            {"id":111,"sportart":"Zirkuskünste Eltern-Kind-Turnen","detail":"5-6 jährige nur mit Eltern","wochentag":"Montag","start":"15:30","ende":"16:15","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":112,"sportart":"Zirkuskünste Eltern-Kind-Turnen","detail":"7-10 jährige nur mit Eltern","wochentag":"Montag","start":"16:15","ende":"17:00","strasse":"Dantestr.","hausnummer":"14","stadtteil":"Gern","schule":"Städtisches Stadion an der Dantestr. 14","lat":48.1676723817281,"lng":11.5279613083889,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/eltern-kind-turnen-staedtisches-freizeitsport-angebot-muenchen"},
+            {"id":113,"sportart":"Zumba","detail":"","wochentag":"Donnerstag","start":"18:30","ende":"19:30","strasse":"Guldeinstr.","hausnummer":"27","stadtteil":"Westend","schule":"Grundschule an der Guldeinstr. 27","lat":48.1383291635933,"lng":11.5328140483901,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":114,"sportart":"Zumba","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","strasse":"Luisenstr.","hausnummer":"29","stadtteil":"Königsplatz","schule":"Städtische Berufsschule für Spedition und Touristik","lat":48.1454129828542,"lng":11.562628207656,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":115,"sportart":"Zumba","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","strasse":"Stielerstr.","hausnummer":"6","stadtteil":"Theresienwiese","schule":"Grundschule an der Stielerstr. 6","lat":48.1277325855402,"lng":11.551609288548,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":116,"sportart":"Zumba","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":117,"sportart":"Zumba","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","strasse":"Damenstiftstr.","hausnummer":"3","stadtteil":"Stadtmitte","schule":"Städtische Salvator-Realschule","lat":48.1370568078445,"lng":11.5690812361836,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":118,"sportart":"Zumba","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","strasse":"Herrnstr.","hausnummer":"21","stadtteil":"Stadtmitte","schule":"Grundschule an der Herrnstrasse 21","lat":48.1364816576637,"lng":11.5811826538176,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":119,"sportart":"Zumba","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","strasse":"Hirschbergstr.","hausnummer":"33","stadtteil":"Neuhausen","schule":"Städtische Berufsschule für Körperpflege","lat":48.1479112781728,"lng":11.5300993440667,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":120,"sportart":"Zumba","detail":"Zumba Gold","wochentag":"Donnerstag","start":"17:00","ende":"18:00","strasse":"Damenstiftstr.","hausnummer":"3","stadtteil":"Stadtmitte","schule":"Städtische Salvator-Realschule","lat":48.1370568078445,"lng":11.5690812361836,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"},
+            {"id":121,"sportart":"Zumba","detail":"Zumba Gold","wochentag":"Mittwoch","start":"18:00","ende":"19:00","strasse":"Corneliusstr.","hausnummer":"17","stadtteil":"Isarvorstadt","schule":"Grundschule am Gärtnerplatz","lat":48.1313181601876,"lng":11.5769218173545,"webseite":"https://www.muenchen.de/freizeit/freizeitsportprogramm/zumba-freizeitsport-muenchen"}
+        ];
+
+        // ============================================
+        // KONFIGURATION
+        // ============================================
+        const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjYyYzA2NjNmYzRlOTRiY2Y5ZTQ4NTAyZTNiNGEyNTk5IiwiaCI6Im11cm11cjY0In0=';
+        const MUNICH_CENTER = [48.137154, 11.576124];
+
+        // Sportart-Kategorien für Farben
+        const sportKategorien = {
+            fitness: ['Fitness Classic', 'Fitness Power', 'Fitness für Frauen', 'Bodystyling', 'BodyART', 'Fatburn', 'HIIT', 'Functional Training', 'Power Circuit Training', 'Core - Power für Bauch und Rücken', 'Step Power', 'Kickbox-Power'],
+            yoga: ['Yoga', 'Pilates', 'Qi Gong', 'Mobility Stretching'],
+            ball: ['Basketball', 'Volleyball'],
+            tanz: ['Zumba', 'Female Moves', 'Silent Disco Groove'],
+            familie: ['Eltern-Kind-Turnen', 'Zirkuskünste Eltern-Kind-Turnen'],
+            senioren: ['Generation plus', 'Rücken Fitness'],
+            outdoor: ['Nordic Walking + Gym']
+        };
+
+        const kategorieColors = {
+            fitness: '#ff9800',
+            yoga: '#9c27b0',
+            ball: '#4caf50',
+            tanz: '#e91e63',
+            familie: '#00bcd4',
+            senioren: '#795548',
+            outdoor: '#8bc34a',
+            other: '#2196f3'
+        };
+
+        function getKategorie(sportart) {
+            for (const [kat, sports] of Object.entries(sportKategorien)) {
+                if (sports.includes(sportart)) return kat;
+            }
+            return 'other';
+        }
+
+        function getColor(sportart) {
+            return kategorieColors[getKategorie(sportart)];
+        }
+
+        // ============================================
+        // INITIALISIERUNG
+        // ============================================
+        let map;
+        let markers = [];
+        let isochroneLayer = null;
+        let userMarker = null;
+        let userLocation = null;
+        let selectedMode = 'cycling-regular';
+        let selectedTime = 15;
+        let selectedDays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+        let selectedSport = '';
+
+        // Karte initialisieren
+        function initMap() {
+            map = L.map('map').setView(MUNICH_CENTER, 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            // Alle Kurse als Marker hinzufügen
+            addMarkers();
+
+            // Sportarten-Dropdown befüllen
+            populateSportFilter();
+
+            // Event-Listener
+            setupEventListeners();
+        }
+
+        // Marker erstellen
+        function createMarker(kurs) {
+            const color = getColor(kurs.sportart);
+
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${color};
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            const marker = L.marker([kurs.lat, kurs.lng], { icon })
+                .bindPopup(`
+                    <div class="popup-title">${kurs.sportart}</div>
+                    ${kurs.detail ? `<div class="popup-detail"><em>${kurs.detail}</em></div>` : ''}
+                    <div class="popup-detail">📅 ${kurs.wochentag}, ${kurs.start} - ${kurs.ende}</div>
+                    <div class="popup-detail">📍 ${kurs.strasse} ${kurs.hausnummer}, ${kurs.stadtteil}</div>
+                    <div class="popup-detail">🏫 ${kurs.schule}</div>
+                    <a href="${kurs.webseite}" target="_blank" class="popup-link">Mehr Infos →</a>
+                `);
+
+            marker.kursData = kurs;
+            return marker;
+        }
+
+        function addMarkers() {
+            kurse.forEach(kurs => {
+                const marker = createMarker(kurs);
+                markers.push(marker);
+                marker.addTo(map);
+            });
+        }
+
+        // Sportarten-Filter befüllen
+        function populateSportFilter() {
+            const sportarten = [...new Set(kurse.map(k => k.sportart))].sort();
+            const select = document.getElementById('sportFilter');
+
+            sportarten.forEach(sport => {
+                const option = document.createElement('option');
+                option.value = sport;
+                option.textContent = sport;
+                select.appendChild(option);
+            });
+        }
+
+        // Event-Listener
+        function setupEventListeners() {
+            // Adresseingabe
+            const addressInput = document.getElementById('addressInput');
+            let debounceTimer;
+
+            addressInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    geocodeAddress(addressInput.value);
+                }
+            });
+
+            // GPS-Button
+            document.getElementById('gpsBtn').addEventListener('click', getGPSLocation);
+
+            // Verkehrsmittel
+            document.querySelectorAll('.transport-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.transport-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedMode = btn.dataset.mode;
+                    if (userLocation) updateIsochrone();
+                });
+            });
+
+            // Reisezeit-Slider
+            const timeSlider = document.getElementById('timeSlider');
+            const timeValue = document.getElementById('timeValue');
+
+            timeSlider.addEventListener('input', () => {
+                selectedTime = parseInt(timeSlider.value);
+                timeValue.textContent = `${selectedTime} min`;
+            });
+
+            timeSlider.addEventListener('change', () => {
+                if (userLocation) updateIsochrone();
+            });
+
+            // Sportart-Filter
+            document.getElementById('sportFilter').addEventListener('change', (e) => {
+                selectedSport = e.target.value;
+                filterAndUpdate();
+            });
+
+            // Wochentag-Buttons
+            document.querySelectorAll('.weekday-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    updateSelectedDays();
+                    filterAndUpdate();
+                });
+            });
+        }
+
+        function updateSelectedDays() {
+            selectedDays = [];
+            document.querySelectorAll('.weekday-btn.active').forEach(btn => {
+                selectedDays.push(btn.dataset.day);
+            });
+        }
+
+        // Geocoding
+        async function geocodeAddress(address) {
+            if (!address.trim()) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', München, Germany')}&limit=1`
+                );
+                const data = await response.json();
+
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+                    setUserLocation(parseFloat(lat), parseFloat(lon));
+                } else {
+                    alert('Adresse nicht gefunden. Bitte versuche es erneut.');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                alert('Fehler bei der Adresssuche.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // GPS-Standort
+        function getGPSLocation() {
+            if (!navigator.geolocation) {
+                alert('GPS wird von deinem Browser nicht unterstützt.');
+                return;
+            }
+
+            const btn = document.getElementById('gpsBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation(position.coords.latitude, position.coords.longitude);
+                    btn.disabled = false;
+                    btn.textContent = '📍';
+                },
+                (error) => {
+                    alert('GPS-Standort konnte nicht ermittelt werden.');
+                    btn.disabled = false;
+                    btn.textContent = '📍';
+                }
+            );
+        }
+
+        // Benutzerstandort setzen
+        function setUserLocation(lat, lng) {
+            userLocation = [lat, lng];
+
+            // Marker setzen oder aktualisieren
+            if (userMarker) {
+                userMarker.setLatLng(userLocation);
+            } else {
+                userMarker = L.marker(userLocation, {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: `<div style="
+                            background: #1976d2;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 50%;
+                            border: 3px solid white;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                        "></div>`,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    })
+                }).addTo(map);
+            }
+
+            map.setView(userLocation, 14);
+            updateIsochrone();
+        }
+
+        // Isochrone berechnen
+        async function updateIsochrone() {
+            if (!userLocation) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('https://api.openrouteservice.org/v2/isochrones/' + selectedMode, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': ORS_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        locations: [[userLocation[1], userLocation[0]]],
+                        range: [selectedTime * 60],
+                        range_type: 'time'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.features && data.features.length > 0) {
+                    // Alte Isochrone entfernen
+                    if (isochroneLayer) {
+                        map.removeLayer(isochroneLayer);
+                    }
+
+                    // Neue Isochrone hinzufügen
+                    isochroneLayer = L.geoJSON(data, {
+                        style: {
+                            color: '#43a047',
+                            weight: 2,
+                            fillColor: '#43a047',
+                            fillOpacity: 0.15
+                        }
+                    }).addTo(map);
+
+                    // Info anzeigen
+                    document.getElementById('isochroneInfo').classList.add('active');
+
+                    // Kurse filtern und aktualisieren
+                    filterAndUpdate();
+                }
+            } catch (error) {
+                console.error('Isochrone error:', error);
+                alert('Fehler bei der Erreichbarkeitsberechnung.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Filter anwenden
+        function filterAndUpdate() {
+            let filtered = kurse.filter(kurs => {
+                // Wochentag
+                if (!selectedDays.includes(kurs.wochentag)) return false;
+
+                // Sportart
+                if (selectedSport && kurs.sportart !== selectedSport) return false;
+
+                return true;
+            });
+
+            // Distanz berechnen wenn Standort gesetzt
+            if (userLocation) {
+                filtered = filtered.map(kurs => {
+                    const dist = getDistance(userLocation[0], userLocation[1], kurs.lat, kurs.lng);
+                    return { ...kurs, distance: dist };
+                }).sort((a, b) => a.distance - b.distance);
+            }
+
+            // Marker aktualisieren
+            updateMarkers(filtered);
+
+            // Ergebnisliste aktualisieren
+            updateResultsList(filtered);
+        }
+
+        // Distanz berechnen (Haversine)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // Marker aktualisieren
+        function updateMarkers(filtered) {
+            const filteredIds = new Set(filtered.map(k => k.id));
+
+            markers.forEach(marker => {
+                const isVisible = filteredIds.has(marker.kursData.id);
+
+                if (isVisible) {
+                    if (!map.hasLayer(marker)) {
+                        marker.addTo(map);
+                    }
+                    // Check if inside isochrone
+                    if (isochroneLayer) {
+                        const point = [marker.kursData.lng, marker.kursData.lat];
+                        const inside = isPointInIsochrone(point);
+                        marker.setOpacity(inside ? 1 : 0.3);
+                    }
+                } else {
+                    if (map.hasLayer(marker)) {
+                        map.removeLayer(marker);
+                    }
+                }
+            });
+
+            // Zähler aktualisieren
+            document.getElementById('resultCount').textContent = filtered.length;
+        }
+
+        function isPointInIsochrone(point) {
+            if (!isochroneLayer) return true;
+
+            let inside = false;
+            isochroneLayer.eachLayer(layer => {
+                if (layer.getBounds && layer.getBounds().contains([point[1], point[0]])) {
+                    inside = true;
+                }
+            });
+            return inside;
+        }
+
+        // Ergebnisliste aktualisieren
+        function updateResultsList(filtered) {
+            const list = document.getElementById('resultsList');
+            list.innerHTML = '';
+
+            filtered.slice(0, 50).forEach(kurs => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+
+                let distanceText = '';
+                if (kurs.distance) {
+                    if (kurs.distance < 1000) {
+                        distanceText = `${Math.round(kurs.distance)} m`;
+                    } else {
+                        distanceText = `${(kurs.distance / 1000).toFixed(1)} km`;
+                    }
+                }
+
+                item.innerHTML = `
+                    <div class="result-sport">${kurs.sportart}</div>
+                    ${kurs.detail ? `<div class="result-detail">${kurs.detail}</div>` : ''}
+                    <div class="result-meta">
+                        <span>📅 ${kurs.wochentag.slice(0,2)} ${kurs.start}</span>
+                        <span>📍 ${kurs.stadtteil}</span>
+                        ${distanceText ? `<span class="result-distance">↔ ${distanceText}</span>` : ''}
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    map.setView([kurs.lat, kurs.lng], 15);
+                    const marker = markers.find(m => m.kursData.id === kurs.id);
+                    if (marker) marker.openPopup();
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        // Loading-Indikator
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        // Start
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>
