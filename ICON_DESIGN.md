@@ -2,66 +2,80 @@
 
 ## Design Prinzipien
 
-### Allgemein
-- **Stroke-based**: Alle Icons nutzen `stroke-width="1.5"` mit `stroke-linecap="round"` und `stroke-linejoin="round"`
-- **ViewBox**: Einheitlich `24x24`
-- **Keine Fills**: Außer für kleine Akzente (Augen, Punkte)
-- **Erkennbarkeit**: Icons müssen auch in 32px Größe erkennbar sein
+### Grundlagen
+- **ViewBox**: `24x24` - alle Icons
+- **Stroke-width**: `1.5` als Standard
+- **Stroke-linecap/linejoin**: `round` für weiche Übergänge
 
-### Figurative Icons (Menschen/Bewegung)
-- Kopf als Kreis (`r="2.5"`)
-- Körper mit fließenden Kurven (Bézier-Pfade mit `q` oder `c`)
-- Keine harten Winkel bei Gliedmaßen
-- Proportionen: Kopf ~1/6 der Gesamthöhe
+### Ecken & Rundungen
 
-### Abstrakte Icons (Bälle, Symbole)
-- Klare geometrische Formen
-- Symmetrie wo möglich
-- Charakteristische Details die den Sport erkennbar machen
+**Abgerundet verwenden bei:**
+- Organischen Formen (Menschen, Flammen, Blätter)
+- Verbindungspunkten von Linien
+- Enden von offenen Pfaden
+- Weichen, einladenden Elementen
+
+**Kantig/Scharf verwenden bei:**
+- Technischen Objekten (Hanteln, Stufen, Gebäude)
+- Geometrischen Grundformen wo Präzision wichtig ist
+- Kontrastelementen für visuelles Interesse
+
+**Regel**: Innerhalb eines Icons konsistent bleiben. Nicht mischen außer bewusst als Kontrast.
+
+### Fills vs. Strokes
+
+**Nur Strokes:**
+- Standard für die meisten Icons
+- Leichter, luftiger Look
+- Gut für komplexe Formen
+
+**Fills als Akzent:**
+- Kleine Punkte/Augen (signalisiert "aktiv" oder "Fokus")
+- Gewichte bei Fitness-Icons (signalisiert "Masse")
+- Max. 1-2 filled Elemente pro Icon
+
+**Volle Fills:**
+- Vermeiden - macht Icons zu schwer
+- Ausnahme: Silhouetten-Stil (nicht unser Stil)
+
+### Visuelle Hierarchie
+1. **Primäres Element**: Größte Form, zentralste Position
+2. **Sekundäre Details**: Unterstützen Erkennbarkeit
+3. **Akzente**: Kleine Fills oder besondere Linien
+
+### Proportionen
+- Padding: ~2px zum Rand (Icon nutzt ca. 20x20 im 24x24 ViewBox)
+- Figurative Icons: Kopf r="2.5", Körper proportional
+- Linien-Balance: Nicht zu dünn (< 1), nicht zu dick (> 2)
 
 ---
 
 ## Feedback Log
 
-### Iteration 1 (2024-12-27)
-**Feedback**: "Icons zu abgehackt und hässlich, besonders Strichmännchen"
+### Iteration 1
+**Feedback**: "Icons zu abgehackt, besonders Strichmännchen"
+**Lösung**: Rounded strokes, Bézier-Kurven für Körper
 
-**Interpretation**:
-- Gerade Linien bei menschlichen Figuren wirken unnatürlich
-- Fehlende `stroke-linecap/linejoin="round"` macht Ecken hart
-- Zu wenig Kurven in Bewegungsdarstellungen
-
-**Änderungen**:
-- Alle Icons auf rounded strokes umgestellt
-- Menschliche Figuren mit Bézier-Kurven neu gezeichnet
-
----
-
-### Iteration 2 (2024-12-27)
+### Iteration 2
 **Feedback**: "Basketball und Qi Gong waren vorher besser"
+**Lösung**: Klassische Symbole nicht über-simplifizieren
 
-**Interpretation**:
-- Nicht alle Änderungen sind Verbesserungen
-- Klassische, erkennbare Darstellungen beibehalten
-- Bei bekannten Symbolen (Yin-Yang, Basketball-Linien) nicht zu stark abstrahieren
+### Iteration 3
+**Feedback**: "Rücken icon schöner und erkennbarer"
+**Lösung**: Anatomische Klarheit, Wirbelsäulen-Metapher
 
-**Änderungen**:
-- Basketball: Zurück zu klassischen Ball-Linien
-- Qi Gong: S-Kurve für Yin-Yang wiederhergestellt
+### Iteration 4 (aktuell)
+**Feedback**: "Fitness Classic cleaner, sinnvoll mit Ecken arbeiten, Fills überdenken"
 
----
+**Analyse Fitness Classic (Hantel)**:
+- Hantel = technisches Objekt → eher kantig
+- Gewichtsscheiben = Masse → könnten filled sein
+- Stange = Verbindung → dünn, aber sichtbar
 
-### Iteration 3 (2024-12-27)
-**Feedback**: "Rücken icon schöner und erkennbarer machen"
-
-**Interpretation**:
-- Abstrakte Körperteile müssen anatomisch erkennbar sein
-- Rücken/Wirbelsäule braucht klarere visuelle Metapher
-- Icon muss auf den ersten Blick "Rücken" kommunizieren
-
-**Änderungen**:
-- Rücken Fitness: Wirbelsäule als vertikale Struktur mit Wirbeln
-- Seitliche Silhouette für bessere Erkennbarkeit
+**Design-Entscheidung**:
+- Gewichtsscheiben: Filled rectangles (signalisiert Gewicht/Masse)
+- Stange: Dünne Linie
+- Ecken: `rx="0"` für technischen Look, aber rounded stroke-ends
 
 ---
 
@@ -69,9 +83,18 @@
 
 | Icon | Status | Notizen |
 |------|--------|---------|
-| Basketball | ✅ OK | Klassische Ball-Linien |
-| Qi Gong | ✅ OK | Yin-Yang Symbol |
-| Rücken Fitness | 🔄 Überarbeitet | Wirbelsäulen-Darstellung |
-| Yoga | ✅ OK | Lotus-Position angedeutet |
-| Zumba | ⚠️ Prüfen | Tanzende Figur |
-| Nordic Walking | ⚠️ Prüfen | Stöcke + Bewegung |
+| Basketball | ✅ | Klassische Ball-Linien |
+| Qi Gong | ✅ | Yin-Yang Symbol |
+| Rücken Fitness | ✅ | Wirbelsäulen-Darstellung |
+| Yoga | ✅ | Lotus-arme |
+| Fitness Classic | ✅ | Filled Plates, sharp corners, clean bar |
+| Fitness Power | ✅ | Wie Classic + Akzent-Kreis |
+| Zumba | ⚠️ | Prüfen |
+| Nordic Walking | ⚠️ | Prüfen |
+
+---
+
+## Referenzen & Inspiration
+- Lucide Icons (stroke-based, konsistent)
+- Phosphor Icons (gute Balance Rundung/Kanten)
+- SF Symbols (Apple - gute Gewichtung)
