@@ -1,5 +1,19 @@
 # Icon Design Guidelines
 
+## Vision: Eine Icon-Familie
+
+Wir designen eine **zusammenhängende Icon-Familie** für alle Sportarten - ähnlich wie die ikonischen Piktogramme der Olympischen Spiele (z.B. München 1972 von Otl Aicher oder Tokyo 2020).
+
+**Ziel**: Jedes Icon soll...
+- Sofort als Teil der gleichen Familie erkennbar sein
+- Die Sportart eindeutig kommunizieren
+- In kleiner Größe (24x24) funktionieren
+- Einen einheitlichen visuellen Stil teilen
+
+**Inspiration**: Olympische Piktogramme, die über Jahrzehnte beweisen, dass Sport-Icons universell verständlich und ästhetisch zeitlos sein können.
+
+---
+
 ## Design Prinzipien
 
 ### Grundlagen
