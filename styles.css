@@ -167,9 +167,9 @@ body {
     width: 14px;
     height: 14px;
     margin: -2px;
-    background: #089289;
-    border: 2px solid #fff;
-    box-shadow: 0 0 12px #089289, 0 0 24px rgba(8,146,137,0.8), 0 0 48px rgba(8,146,137,0.5);
+    background: #fff;
+    border: 2px solid #089289;
+    box-shadow: 0 0 12px rgba(255,255,255,0.9), 0 0 24px rgba(255,255,255,0.5);
     animation: pulse-marker 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     pointer-events: auto;
     cursor: pointer;
@@ -179,12 +179,12 @@ body {
     0%, 100% {
         opacity: 1;
         transform: scale(1);
-        box-shadow: 0 0 12px #089289, 0 0 24px rgba(8,146,137,0.8), 0 0 48px rgba(8,146,137,0.5);
+        box-shadow: 0 0 12px rgba(255,255,255,0.9), 0 0 24px rgba(255,255,255,0.5);
     }
     50% {
         opacity: 1;
-        transform: scale(1.2);
-        box-shadow: 0 0 20px #089289, 0 0 40px rgba(8,146,137,0.9), 0 0 60px rgba(8,146,137,0.6);
+        transform: scale(1.15);
+        box-shadow: 0 0 18px rgba(255,255,255,1), 0 0 36px rgba(255,255,255,0.7);
     }
 }
 
@@ -327,18 +327,6 @@ body {
     opacity: 0;
     transform: translate(-50%, 100vh);
     pointer-events: none;
-}
-
-.info-modal-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 20px;
-    color: rgba(255,255,255,0.9);
-}
-
-.info-modal-icon svg {
-    width: 100%;
-    height: 100%;
 }
 
 .info-modal-title {
