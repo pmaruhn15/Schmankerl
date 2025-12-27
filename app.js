@@ -146,6 +146,9 @@ function parseCSV(csvText) {
         csvText = csvText.slice(1);
     }
 
+    // Normalize line endings
+    csvText = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     const lines = csvText.trim().split('\n');
     const headers = parseCSVLine(lines[0]);
     const result = [];
