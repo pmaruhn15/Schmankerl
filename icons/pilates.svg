@@ -1,1 +1,15 @@
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="18" rx="7" ry="2.5"/><circle cx="12" cy="5" r="2.5"/><path d="M12 7.5v8"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <!-- Person lying on back, legs up (hundred position) -->
+  <!-- Head -->
+  <circle cx="5" cy="14" r="2"/>
+  <!-- Torso on mat -->
+  <path d="M7 14h8"/>
+  <!-- Legs raised at angle -->
+  <path d="M15 14L19 6"/>
+  <path d="M15 14L21 8"/>
+  <!-- Arms alongside body -->
+  <path d="M8 14L6 17"/>
+  <path d="M10 14L8 17"/>
+  <!-- Mat -->
+  <path d="M2 18h20"/>
+</svg>

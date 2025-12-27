@@ -1,1 +1,12 @@
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="17" cy="4" r="2.5"/><path d="M17 6.5q0 4-4 6t-8 2"/><path d="M5 18q5-2 8-4"/><path d="M3 13q2 0 4 1"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head -->
+  <circle cx="8" cy="6" r="2.5"/>
+  <!-- Body bending forward -->
+  <path d="M8 8.5L16 12"/>
+  <!-- Arms reaching forward -->
+  <path d="M16 12L20 10"/>
+  <!-- Back leg straight -->
+  <path d="M8 8.5L4 18"/>
+  <!-- Front leg bent -->
+  <path d="M8 8.5L12 16L16 20"/>
+</svg>

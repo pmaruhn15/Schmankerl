@@ -1,1 +1,11 @@
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2.5"/><path d="M12 6.5v5"/><path d="M4 19q8-6 16 0"/><path d="M8 16q4-3 8 0"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head -->
+  <circle cx="12" cy="5" r="2.5"/>
+  <!-- Body -->
+  <path d="M12 7.5v4"/>
+  <!-- Arms in meditation pose -->
+  <path d="M8 10q4 2 8 0"/>
+  <!-- Crossed legs (lotus) -->
+  <path d="M7 18q2-4 5-4t5 4"/>
+  <path d="M8 15q4 2 8 0"/>
+</svg>
