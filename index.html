@@ -3,425 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SportFinder München</title>
+    <title>Sport in München</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fafafa;
-            min-height: 100vh;
-            min-height: 100dvh;
+            background: #000;
+            overflow: hidden;
         }
 
-        .app {
-            max-width: 430px;
-            margin: 0 auto;
-            min-height: 100vh;
-            min-height: 100dvh;
-            background: #fff;
-            position: relative;
+        #map {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* Overlay für Sportart-Anzeige */
+        .sport-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .sport-display.active {
+            opacity: 1;
+        }
+
+        .sport-emoji {
+            font-size: 5rem;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.5));
+            animation: pulse-emoji 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-emoji {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .sport-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+            letter-spacing: -0.02em;
+        }
+
+        .sport-count {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
         /* Header */
         .header {
-            padding: 48px 24px 24px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 1rem;
-            color: #666;
-        }
-
-        /* Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 0 16px 100px;
-        }
-
-        .card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 16px;
-            padding: 20px 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            border-color: #1a1a1a;
-        }
-
-        .card:active {
-            transform: scale(0.98);
-            background: #f5f5f5;
-        }
-
-        .card-emoji {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .card-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 4px;
-        }
-
-        .card-count {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        /* Modal Overlay */
-        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            padding: 24px;
+            padding-top: calc(24px + env(safe-area-inset-top));
             z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border-radius: 24px 24px 0 0;
-            max-height: 85vh;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal.active {
-            transform: translateY(0);
-        }
-
-        .modal-handle {
-            width: 40px;
-            height: 4px;
-            background: #ddd;
-            border-radius: 2px;
-            margin: 12px auto;
-            flex-shrink: 0;
-        }
-
-        .modal-header {
-            padding: 8px 24px 20px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            flex-shrink: 0;
-        }
-
-        .modal-emoji {
-            font-size: 3rem;
-            margin-bottom: 8px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-
-        .modal-subtitle {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        /* Kurse Liste */
-        .kurse-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 24px 32px;
-        }
-
-        .kurs-item {
-            display: flex;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .kurs-item:last-child {
-            border-bottom: none;
-        }
-
-        .kurs-day {
-            width: 48px;
-            height: 48px;
-            background: #1a1a1a;
-            color: #fff;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-
-        .kurs-info {
-            flex: 1;
-            margin-left: 16px;
-        }
-
-        .kurs-time {
-            font-size: 1rem;
+        .header h1 {
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
-        .kurs-location {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .kurs-detail {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 2px;
-            font-style: italic;
-        }
-
-        /* Footer */
+        /* Footer / Progress */
         .footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
+            padding: 24px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
             background: #fff;
-            border-top: 1px solid #eee;
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-            text-align: center;
+            transition: width 0.3s ease;
+        }
+
+        .sport-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .sport-pill {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
             font-size: 0.75rem;
-            color: #999;
-            z-index: 100;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .footer a {
-            color: #1a1a1a;
+        .sport-pill.active {
+            background: #fff;
+            color: #000;
+        }
+
+        .sport-pill:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .sport-pill.active:hover {
+            background: #fff;
+        }
+
+        /* Marker Styles */
+        .marker-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+        }
+
+        .marker-dot.active {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.4);
+            animation: pulse-marker 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-marker {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.4);
+            }
+            50% {
+                transform: scale(1.3);
+                box-shadow: 0 0 30px rgba(255,255,255,1), 0 0 60px rgba(255,255,255,0.6);
+            }
+        }
+
+        /* Attribution verstecken */
+        .leaflet-control-attribution {
+            display: none;
+        }
+
+        /* Play/Pause Button */
+        .play-pause {
+            position: fixed;
+            bottom: calc(100px + env(safe-area-inset-bottom));
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .play-pause:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Credits */
+        .credits {
+            text-align: center;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 12px;
+        }
+
+        .credits a {
+            color: rgba(255,255,255,0.6);
             text-decoration: none;
-            font-weight: 500;
-        }
-
-        /* Day colors */
-        .day-mo { background: #1a1a1a; }
-        .day-di { background: #333; }
-        .day-mi { background: #4a4a4a; }
-        .day-do { background: #666; }
-        .day-fr { background: #888; }
-
-        /* Responsive */
-        @media (min-width: 430px) {
-            .app {
-                border-left: 1px solid #e0e0e0;
-                border-right: 1px solid #e0e0e0;
-            }
-            .footer {
-                max-width: 430px;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            .modal {
-                max-width: 430px;
-                left: 50%;
-                transform: translateX(-50%) translateY(100%);
-            }
-            .modal.active {
-                transform: translateX(-50%) translateY(0);
-            }
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <header class="header">
-            <h1>Sport in München</h1>
-            <p>Was probierst du als nächstes?</p>
-        </header>
+    <div id="map"></div>
 
-        <div class="cards-grid" id="cardsGrid"></div>
-
-        <footer class="footer">
-            Daten: <a href="https://opendata.muenchen.de" target="_blank">opendata.muenchen.de</a> ·
-            <a href="https://datengartln.de" target="_blank">Datengartln</a> Schmankerl
-        </footer>
+    <div class="header">
+        <h1>Freizeitsport München</h1>
     </div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay"></div>
-    <div class="modal" id="modal">
-        <div class="modal-handle"></div>
-        <div class="modal-header">
-            <div class="modal-emoji" id="modalEmoji">🏃</div>
-            <h2 class="modal-title" id="modalTitle">Sportart</h2>
-            <p class="modal-subtitle" id="modalSubtitle">X Kurse pro Woche</p>
+    <div class="sport-display" id="sportDisplay">
+        <div class="sport-emoji" id="sportEmoji">🏃</div>
+        <div class="sport-name" id="sportName">Sport</div>
+        <div class="sport-count" id="sportCount">X Standorte</div>
+    </div>
+
+    <button class="play-pause" id="playPause">⏸</button>
+
+    <div class="footer">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
         </div>
-        <div class="kurse-list" id="kurseList"></div>
+        <div class="sport-pills" id="sportPills"></div>
+        <div class="credits">
+            Daten: <a href="https://opendata.muenchen.de">opendata.muenchen.de</a> ·
+            <a href="https://datengartln.de">Datengartln</a> Schmankerl
+        </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Daten
+        // Daten mit Koordinaten
         const kurse = [
-            {"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"20:00","ende":"21:30","stadtteil":"Königsplatz"},
-            {"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","stadtteil":"Laim"},
-            {"sportart":"Basketball","detail":"","wochentag":"Dienstag","start":"20:00","ende":"21:30","stadtteil":"Königsplatz"},
-            {"sportart":"Basketball","detail":"","wochentag":"Montag","start":"19:00","ende":"20:30","stadtteil":"Au"},
-            {"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Berg am Laim"},
-            {"sportart":"Basketball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","stadtteil":"Berg am Laim"},
-            {"sportart":"BodyART","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Königsplatz"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Perlach"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Laim"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","stadtteil":"Harthof"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Königsplatz"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Dienstag","start":"17:30","ende":"18:30","stadtteil":"Sendling"},
-            {"sportart":"Bodystyling","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Neuhausen"},
-            {"sportart":"Bodystyling","detail":"Bodystyling mit Flexibar","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Königsplatz"},
-            {"sportart":"Bodystyling","detail":"Bodystyling + Dance","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Neuhausen"},
-            {"sportart":"Core Power","detail":"für Bauch und Rücken","wochentag":"Donnerstag","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Core Power","detail":"für Bauch und Rücken","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Eltern-Kind-Turnen","detail":"0-3,5 Jahre","wochentag":"Donnerstag","start":"10:45","ende":"12:00","stadtteil":"Gern"},
-            {"sportart":"Eltern-Kind-Turnen","detail":"0-4 Jahre","wochentag":"Dienstag","start":"09:45","ende":"11:00","stadtteil":"Gern"},
-            {"sportart":"Eltern-Kind-Turnen","detail":"0-4 Jahre","wochentag":"Mittwoch","start":"14:30","ende":"15:45","stadtteil":"Gern"},
-            {"sportart":"Eltern-Kind-Turnen","detail":"3-6 Jahre","wochentag":"Mittwoch","start":"15:45","ende":"17:00","stadtteil":"Gern"},
-            {"sportart":"Fatburn","detail":"","wochentag":"Mittwoch","start":"17:00","ende":"18:00","stadtteil":"Königsplatz"},
-            {"sportart":"Female Moves","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Fitness Classic","detail":"Fitness + Balance","wochentag":"Montag","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Gern"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Laim"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","stadtteil":"Schwabing"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Pasing"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Laim"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","stadtteil":"Isarvorstadt"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"18:30","ende":"19:30","stadtteil":"Trudering"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Hauptbahnhof"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Au"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Harras"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Schwabing"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:30","ende":"19:30","stadtteil":"Haidhausen"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","stadtteil":"Haidhausen"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"18:30","ende":"19:30","stadtteil":"Sendling"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","stadtteil":"Hauptbahnhof"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Bogenhausen"},
-            {"sportart":"Fitness Classic","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Fitness Classic","detail":"Fitness Classic / Energym","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Gern"},
-            {"sportart":"Fitness für Frauen","detail":"mit Faszientraining","wochentag":"Montag","start":"08:30","ende":"09:30","stadtteil":"Gern"},
-            {"sportart":"Fitness Power","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","stadtteil":"Großhadern"},
-            {"sportart":"Fitness Power","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:15","stadtteil":"Schwabing"},
-            {"sportart":"Fitness Power","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Neuhausen"},
-            {"sportart":"Functional Training","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","stadtteil":"Feldmoching"},
-            {"sportart":"Functional Training","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Königsplatz"},
-            {"sportart":"Generation plus","detail":"","wochentag":"Montag","start":"09:45","ende":"10:45","stadtteil":"Gern"},
-            {"sportart":"Generation plus","detail":"","wochentag":"Donnerstag","start":"09:45","ende":"10:45","stadtteil":"Gern"},
-            {"sportart":"Generation plus","detail":"","wochentag":"Dienstag","start":"09:30","ende":"10:30","stadtteil":"Thalkirchen"},
-            {"sportart":"HIIT","detail":"High Intensity Interval","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Hauptbahnhof"},
-            {"sportart":"HIIT","detail":"High Intensity Interval","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Kickbox-Power","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Mobility Stretching","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Gern"},
-            {"sportart":"Nordic Walking","detail":"+ Gym","wochentag":"Dienstag","start":"18:15","ende":"19:30","stadtteil":"Gern"},
-            {"sportart":"Pilates","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Schwabing"},
-            {"sportart":"Pilates","detail":"","wochentag":"Freitag","start":"09:00","ende":"10:00","stadtteil":"Gern"},
-            {"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"19:30","ende":"20:30","stadtteil":"Trudering"},
-            {"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Königsplatz"},
-            {"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Königsplatz"},
-            {"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","stadtteil":"Au"},
-            {"sportart":"Pilates","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Harras"},
-            {"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Pilates","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Thalkirchen"},
-            {"sportart":"Pilates","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Bogenhausen"},
-            {"sportart":"Power Circuit","detail":"Training","wochentag":"Montag","start":"20:00","ende":"21:00","stadtteil":"Königsplatz"},
-            {"sportart":"Qi Gong","detail":"","wochentag":"Freitag","start":"10:00","ende":"11:00","stadtteil":"Gern"},
-            {"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Schwabing"},
-            {"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:00","stadtteil":"Thalkirchen"},
-            {"sportart":"Qi Gong","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Qi Gong","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Schwabing"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Hauptbahnhof"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"17:00","ende":"18:00","stadtteil":"Gern"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Laim"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Thalkirchen"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Isarvorstadt"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"20:00","ende":"21:00","stadtteil":"Schwabing"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"08:30","ende":"09:30","stadtteil":"Thalkirchen"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"17:30","ende":"18:30","stadtteil":"Haidhausen"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Haidhausen"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"17:00","ende":"18:00","stadtteil":"Pasing"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Montag","start":"14:30","ende":"15:30","stadtteil":"Gern"},
-            {"sportart":"Rücken Fitness","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Rücken Fitness","detail":"+ Faszien-Fitness","wochentag":"Montag","start":"19:00","ende":"20:00","stadtteil":"Gern"},
-            {"sportart":"Rücken Fitness","detail":"+ Stretch&Relax","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Perlach"},
-            {"sportart":"Rücken Fitness","detail":"+ StretchRelax","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Neuhausen"},
-            {"sportart":"Rücken Fitness","detail":"mit Faszientraining","wochentag":"Mittwoch","start":"17:00","ende":"18:00","stadtteil":"Isarvorstadt"},
-            {"sportart":"Silent Disco","detail":"Groove","wochentag":"Donnerstag","start":"19:00","ende":"20:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Step Power","detail":"","wochentag":"Montag","start":"18:00","ende":"18:45","stadtteil":"Königsplatz"},
-            {"sportart":"Volleyball","detail":"","wochentag":"Mittwoch","start":"20:00","ende":"21:30","stadtteil":"Glockenbach"},
-            {"sportart":"Volleyball","detail":"","wochentag":"Donnerstag","start":"19:00","ende":"20:30","stadtteil":"Laim"},
-            {"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"19:30","ende":"21:30","stadtteil":"Sendling"},
-            {"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","stadtteil":"Freimann"},
-            {"sportart":"Volleyball","detail":"","wochentag":"Dienstag","start":"20:00","ende":"22:00","stadtteil":"Feldmoching"},
-            {"sportart":"Yoga","detail":"Yin Yoga","wochentag":"Donnerstag","start":"20:30","ende":"21:30","stadtteil":"Westend"},
-            {"sportart":"Yoga","detail":"","wochentag":"Donnerstag","start":"19:30","ende":"20:30","stadtteil":"Westend"},
-            {"sportart":"Yoga","detail":"","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Haidhausen"},
-            {"sportart":"Yoga","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:30","stadtteil":"Isarvorstadt"},
-            {"sportart":"Yoga","detail":"","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Yoga","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","stadtteil":"Hauptbahnhof"},
-            {"sportart":"Yoga","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Yoga","detail":"Yoga Flow","wochentag":"Montag","start":"18:00","ende":"19:00","stadtteil":"Isarvorstadt"},
-            {"sportart":"Yoga","detail":"Yoga Flow mit Meditation","wochentag":"Montag","start":"19:00","ende":"20:30","stadtteil":"Isarvorstadt"},
-            {"sportart":"Yoga","detail":"für Anfänger","wochentag":"Dienstag","start":"17:00","ende":"18:00","stadtteil":"Königsplatz"},
-            {"sportart":"Yoga","detail":"für Anfänger","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Bogenhausen"},
-            {"sportart":"Yoga","detail":"für den Rücken","wochentag":"Dienstag","start":"08:30","ende":"09:45","stadtteil":"Gern"},
-            {"sportart":"Yoga","detail":"mit Meditation","wochentag":"Dienstag","start":"19:00","ende":"20:30","stadtteil":"Thalkirchen"},
-            {"sportart":"Zirkuskünste","detail":"Eltern-Kind 5-6 Jahre","wochentag":"Montag","start":"15:30","ende":"16:15","stadtteil":"Gern"},
-            {"sportart":"Zirkuskünste","detail":"Eltern-Kind 7-10 Jahre","wochentag":"Montag","start":"16:15","ende":"17:00","stadtteil":"Gern"},
-            {"sportart":"Zumba","detail":"","wochentag":"Donnerstag","start":"18:30","ende":"19:30","stadtteil":"Westend"},
-            {"sportart":"Zumba","detail":"","wochentag":"Dienstag","start":"19:00","ende":"20:00","stadtteil":"Königsplatz"},
-            {"sportart":"Zumba","detail":"","wochentag":"Dienstag","start":"18:00","ende":"19:00","stadtteil":"Theresienwiese"},
-            {"sportart":"Zumba","detail":"","wochentag":"Mittwoch","start":"19:00","ende":"20:00","stadtteil":"Isarvorstadt"},
-            {"sportart":"Zumba","detail":"","wochentag":"Donnerstag","start":"18:00","ende":"19:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Zumba","detail":"","wochentag":"Montag","start":"19:00","ende":"20:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Zumba","detail":"","wochentag":"Montag","start":"17:00","ende":"18:00","stadtteil":"Neuhausen"},
-            {"sportart":"Zumba","detail":"Zumba Gold","wochentag":"Donnerstag","start":"17:00","ende":"18:00","stadtteil":"Stadtmitte"},
-            {"sportart":"Zumba","detail":"Zumba Gold","wochentag":"Mittwoch","start":"18:00","ende":"19:00","stadtteil":"Isarvorstadt"}
+            {sport:"Basketball",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Basketball",lat:48.1279771401509,lng:11.5075067600768},
+            {sport:"Basketball",lat:48.1246735599684,lng:11.5820517686975},
+            {sport:"Basketball",lat:48.1256629590613,lng:11.6093521360076},
+            {sport:"BodyART",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Bodystyling",lat:48.100660948552,lng:11.6346674370314},
+            {sport:"Bodystyling",lat:48.1346189745865,lng:11.4940686470807},
+            {sport:"Bodystyling",lat:48.2102916294354,lng:11.5703685254972},
+            {sport:"Bodystyling",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Bodystyling",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Bodystyling",lat:48.1209665824741,lng:11.5220169446252},
+            {sport:"Bodystyling",lat:48.1479112781728,lng:11.5300993440667},
+            {sport:"Core Power",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Core Power",lat:48.1370568078445,lng:11.5690812361836},
+            {sport:"Eltern-Kind-Turnen",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Fatburn",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Female Moves",lat:48.1370568078445,lng:11.5690812361836},
+            {sport:"Fitness Classic",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Fitness Classic",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Fitness Classic",lat:48.1279771401509,lng:11.5075067600768},
+            {sport:"Fitness Classic",lat:48.1646837125794,lng:11.5896287591855},
+            {sport:"Fitness Classic",lat:48.1390086683869,lng:11.4609136868018},
+            {sport:"Fitness Classic",lat:48.1346189745865,lng:11.4940686470807},
+            {sport:"Fitness Classic",lat:48.1313181601876,lng:11.5769218173545},
+            {sport:"Fitness Classic",lat:48.1177097702945,lng:11.6679835260961},
+            {sport:"Fitness Classic",lat:48.1427246062633,lng:11.5615927987124},
+            {sport:"Fitness Classic",lat:48.1246735599684,lng:11.5820517686975},
+            {sport:"Fitness Classic",lat:48.1187884391627,lng:11.5379845551616},
+            {sport:"Fitness Classic",lat:48.1673841294298,lng:11.5829229048892},
+            {sport:"Fitness Classic",lat:48.1317328376132,lng:11.5979120044264},
+            {sport:"Fitness Classic",lat:48.1209665824741,lng:11.5220169446252},
+            {sport:"Fitness Classic",lat:48.1534210212361,lng:11.6380955466952},
+            {sport:"Fitness Classic",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Fitness Power",lat:48.1137719374883,lng:11.4807220191537},
+            {sport:"Fitness Power",lat:48.1650735397573,lng:11.5668824817947},
+            {sport:"Fitness Power",lat:48.1479112781728,lng:11.5300993440667},
+            {sport:"Functional Training",lat:48.2142946460067,lng:11.5311786746011},
+            {sport:"Functional Training",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Generation plus",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Generation plus",lat:48.1063728062163,lng:11.5460941383408},
+            {sport:"HIIT",lat:48.1427246062633,lng:11.5615927987124},
+            {sport:"HIIT",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Kickbox-Power",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Mobility Stretching",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Nordic Walking",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Pilates",lat:48.1646837125794,lng:11.5896287591855},
+            {sport:"Pilates",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Pilates",lat:48.1177097702945,lng:11.6679835260961},
+            {sport:"Pilates",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Pilates",lat:48.1246735599684,lng:11.5820517686975},
+            {sport:"Pilates",lat:48.1187884391627,lng:11.5379845551616},
+            {sport:"Pilates",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Pilates",lat:48.1063728062163,lng:11.5460941383408},
+            {sport:"Pilates",lat:48.1534210212361,lng:11.6380955466952},
+            {sport:"Power Circuit",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Qi Gong",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Qi Gong",lat:48.1673841294298,lng:11.5829229048892},
+            {sport:"Qi Gong",lat:48.1063728062163,lng:11.5460941383408},
+            {sport:"Qi Gong",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Rücken Fitness",lat:48.1427246062633,lng:11.5615927987124},
+            {sport:"Rücken Fitness",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Rücken Fitness",lat:48.1279771401509,lng:11.5075067600768},
+            {sport:"Rücken Fitness",lat:48.1063728062163,lng:11.5460941383408},
+            {sport:"Rücken Fitness",lat:48.1313181601876,lng:11.5769218173545},
+            {sport:"Rücken Fitness",lat:48.1673841294298,lng:11.5829229048892},
+            {sport:"Rücken Fitness",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Rücken Fitness",lat:48.1317328376132,lng:11.5979120044264},
+            {sport:"Rücken Fitness",lat:48.1390086683869,lng:11.4609136868018},
+            {sport:"Rücken Fitness",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Rücken Fitness",lat:48.100660948552,lng:11.6346674370314},
+            {sport:"Rücken Fitness",lat:48.1479112781728,lng:11.5300993440667},
+            {sport:"Silent Disco",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Step Power",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Volleyball",lat:48.1245215834237,lng:11.5689648040697},
+            {sport:"Volleyball",lat:48.1346189745865,lng:11.4940686470807},
+            {sport:"Volleyball",lat:48.1209665824741,lng:11.5220169446252},
+            {sport:"Volleyball",lat:48.2051990314066,lng:11.6006378717619},
+            {sport:"Volleyball",lat:48.2142946460067,lng:11.5311786746011},
+            {sport:"Yoga",lat:48.1383291635933,lng:11.5328140483901},
+            {sport:"Yoga",lat:48.1317328376132,lng:11.5979120044264},
+            {sport:"Yoga",lat:48.1313181601876,lng:11.5769218173545},
+            {sport:"Yoga",lat:48.1370568078445,lng:11.5690812361836},
+            {sport:"Yoga",lat:48.1427246062633,lng:11.5615927987124},
+            {sport:"Yoga",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Yoga",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Yoga",lat:48.141236964191,lng:11.622705815434},
+            {sport:"Yoga",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Yoga",lat:48.1063728062163,lng:11.5460941383408},
+            {sport:"Zirkuskünste",lat:48.1676723817281,lng:11.5279613083889},
+            {sport:"Zumba",lat:48.1383291635933,lng:11.5328140483901},
+            {sport:"Zumba",lat:48.1454129828542,lng:11.562628207656},
+            {sport:"Zumba",lat:48.1277325855402,lng:11.551609288548},
+            {sport:"Zumba",lat:48.1313181601876,lng:11.5769218173545},
+            {sport:"Zumba",lat:48.1370568078445,lng:11.5690812361836},
+            {sport:"Zumba",lat:48.1364816576637,lng:11.5811826538176},
+            {sport:"Zumba",lat:48.1479112781728,lng:11.5300993440667}
         ];
 
         // Sportarten mit Emojis
@@ -434,7 +353,6 @@
             "Fatburn": "🔥",
             "Female Moves": "💃",
             "Fitness Classic": "🏋️",
-            "Fitness für Frauen": "🏋️‍♀️",
             "Fitness Power": "💪",
             "Functional Training": "⚡",
             "Generation plus": "🌟",
@@ -454,122 +372,165 @@
             "Zumba": "💃"
         };
 
-        // Tages-Kürzel
-        const tagKurz = {
-            "Montag": "Mo",
-            "Dienstag": "Di",
-            "Mittwoch": "Mi",
-            "Donnerstag": "Do",
-            "Freitag": "Fr"
-        };
+        // Unique Sportarten (sortiert nach Häufigkeit)
+        const sportCounts = {};
+        kurse.forEach(k => {
+            sportCounts[k.sport] = (sportCounts[k.sport] || 0) + 1;
+        });
+        const sportarten = Object.entries(sportCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([sport]) => sport);
 
-        const tagClass = {
-            "Montag": "day-mo",
-            "Dienstag": "day-di",
-            "Mittwoch": "day-mi",
-            "Donnerstag": "day-do",
-            "Freitag": "day-fr"
-        };
+        // Karte initialisieren
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([48.137154, 11.576124], 12);
 
-        // Sportarten gruppieren
-        function gruppiereSportarten() {
-            const grouped = {};
-            kurse.forEach(kurs => {
-                if (!grouped[kurs.sportart]) {
-                    grouped[kurs.sportart] = [];
+        // Dunkler Kartenstil
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Labels als separate Schicht
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            maxZoom: 20,
+            opacity: 0.6
+        }).addTo(map);
+
+        // Marker erstellen
+        const markers = [];
+        kurse.forEach(kurs => {
+            const marker = L.marker([kurs.lat, kurs.lng], {
+                icon: L.divIcon({
+                    className: '',
+                    html: `<div class="marker-dot" data-sport="${kurs.sport}"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).addTo(map);
+            markers.push({ marker, sport: kurs.sport });
+        });
+
+        // Sport-Pills erstellen
+        const pillsContainer = document.getElementById('sportPills');
+        sportarten.forEach((sport, index) => {
+            const pill = document.createElement('div');
+            pill.className = 'sport-pill';
+            pill.textContent = sportEmojis[sport] || '🏃';
+            pill.dataset.index = index;
+            pill.addEventListener('click', () => {
+                currentIndex = index;
+                showSport(sport);
+                resetAutoPlay();
+            });
+            pillsContainer.appendChild(pill);
+        });
+
+        // Animation
+        let currentIndex = 0;
+        let isPlaying = true;
+        let autoPlayInterval;
+
+        function showSport(sport) {
+            // Marker aktualisieren
+            document.querySelectorAll('.marker-dot').forEach(dot => {
+                if (dot.dataset.sport === sport) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
                 }
-                grouped[kurs.sportart].push(kurs);
             });
-            return grouped;
+
+            // Display aktualisieren
+            const display = document.getElementById('sportDisplay');
+            document.getElementById('sportEmoji').textContent = sportEmojis[sport] || '🏃';
+            document.getElementById('sportName').textContent = sport;
+            document.getElementById('sportCount').textContent = `${sportCounts[sport]} Standort${sportCounts[sport] > 1 ? 'e' : ''}`;
+            display.classList.add('active');
+
+            // Pills aktualisieren
+            document.querySelectorAll('.sport-pill').forEach((pill, i) => {
+                pill.classList.toggle('active', sportarten[i] === sport);
+            });
+
+            // Progress aktualisieren
+            const progress = ((currentIndex + 1) / sportarten.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
         }
 
-        // Cards rendern
-        function renderCards() {
-            const grid = document.getElementById('cardsGrid');
-            const grouped = gruppiereSportarten();
-
-            // Sortieren nach Anzahl Kurse (beliebteste zuerst)
-            const sorted = Object.entries(grouped)
-                .sort((a, b) => b[1].length - a[1].length);
-
-            sorted.forEach(([sportart, kurseList]) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <span class="card-emoji">${sportEmojis[sportart] || '🏃'}</span>
-                    <div class="card-name">${sportart}</div>
-                    <div class="card-count">${kurseList.length}× pro Woche</div>
-                `;
-                card.addEventListener('click', () => openModal(sportart, kurseList));
-                grid.appendChild(card);
-            });
+        function nextSport() {
+            currentIndex = (currentIndex + 1) % sportarten.length;
+            showSport(sportarten[currentIndex]);
         }
 
-        // Modal öffnen
-        function openModal(sportart, kurseList) {
-            document.getElementById('modalEmoji').textContent = sportEmojis[sportart] || '🏃';
-            document.getElementById('modalTitle').textContent = sportart;
-            document.getElementById('modalSubtitle').textContent = `${kurseList.length} Kurse pro Woche`;
-
-            const list = document.getElementById('kurseList');
-            list.innerHTML = '';
-
-            // Sortieren nach Wochentag
-            const tagOrder = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-            kurseList.sort((a, b) => {
-                const dayDiff = tagOrder.indexOf(a.wochentag) - tagOrder.indexOf(b.wochentag);
-                if (dayDiff !== 0) return dayDiff;
-                return a.start.localeCompare(b.start);
-            });
-
-            kurseList.forEach(kurs => {
-                const item = document.createElement('div');
-                item.className = 'kurs-item';
-                item.innerHTML = `
-                    <div class="kurs-day ${tagClass[kurs.wochentag]}">${tagKurz[kurs.wochentag]}</div>
-                    <div class="kurs-info">
-                        <div class="kurs-time">${kurs.start} – ${kurs.ende}</div>
-                        <div class="kurs-location">📍 ${kurs.stadtteil}</div>
-                        ${kurs.detail ? `<div class="kurs-detail">${kurs.detail}</div>` : ''}
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-
-            document.getElementById('modalOverlay').classList.add('active');
-            document.getElementById('modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            document.getElementById('playPause').textContent = isPlaying ? '⏸' : '▶';
+            if (isPlaying) {
+                startAutoPlay();
+            } else {
+                stopAutoPlay();
+            }
         }
 
-        // Modal schließen
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('modal').classList.remove('active');
-            document.body.style.overflow = '';
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(nextSport, 3000);
+        }
+
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+        }
+
+        function resetAutoPlay() {
+            if (isPlaying) {
+                stopAutoPlay();
+                startAutoPlay();
+            }
         }
 
         // Event Listeners
-        document.getElementById('modalOverlay').addEventListener('click', closeModal);
-        document.querySelector('.modal-handle').addEventListener('click', closeModal);
+        document.getElementById('playPause').addEventListener('click', togglePlayPause);
 
-        // Touch-Geste zum Schließen
-        let touchStartY = 0;
-        const modal = document.getElementById('modal');
-
-        modal.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        });
-
-        modal.addEventListener('touchmove', (e) => {
-            const touchY = e.touches[0].clientY;
-            const diff = touchY - touchStartY;
-            if (diff > 50) {
-                closeModal();
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePlayPause();
+            } else if (e.key === 'ArrowRight') {
+                currentIndex = (currentIndex + 1) % sportarten.length;
+                showSport(sportarten[currentIndex]);
+                resetAutoPlay();
+            } else if (e.key === 'ArrowLeft') {
+                currentIndex = (currentIndex - 1 + sportarten.length) % sportarten.length;
+                showSport(sportarten[currentIndex]);
+                resetAutoPlay();
             }
         });
 
-        // Init
-        renderCards();
+        // Touch swipe
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const diff = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    currentIndex = (currentIndex - 1 + sportarten.length) % sportarten.length;
+                } else {
+                    currentIndex = (currentIndex + 1) % sportarten.length;
+                }
+                showSport(sportarten[currentIndex]);
+                resetAutoPlay();
+            }
+        });
+
+        // Start
+        showSport(sportarten[0]);
+        startAutoPlay();
     </script>
 </body>
 </html>
