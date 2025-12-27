@@ -249,8 +249,17 @@ function createMarkers() {
                 html: `<div class="marker-dot" data-sport="${kurs.sport}" data-index="${index}"></div>`,
                 iconSize: [20, 20],
                 iconAnchor: [10, 10]
-            })
+            }),
+            zIndexOffset: 0
         }).addTo(map);
+
+        // Direct click handler on Leaflet marker
+        marker.on('click', () => {
+            const dot = marker.getElement()?.querySelector('.marker-dot');
+            if (dot && dot.classList.contains('active')) {
+                showDetail(index);
+            }
+        });
 
         markerElements.push({ marker, sport: kurs.sport, index });
     });
@@ -288,9 +297,17 @@ function handlePillClick(index) {
  * Show a specific sport
  */
 function showSport(sport) {
-    // Update markers
-    document.querySelectorAll('.marker-dot').forEach(dot => {
-        dot.classList.toggle('active', dot.dataset.sport === sport);
+    // Update markers and z-index
+    markerElements.forEach(({ marker, sport: markerSport }) => {
+        const dot = marker.getElement()?.querySelector('.marker-dot');
+        const isActive = markerSport === sport;
+
+        if (dot) {
+            dot.classList.toggle('active', isActive);
+        }
+
+        // Bring active markers to front
+        marker.setZIndexOffset(isActive ? 1000 : 0);
     });
 
     // Update info display
@@ -373,16 +390,6 @@ function setupEventListeners() {
     // Detail card close
     elements.detailClose?.addEventListener('click', hideDetail);
     elements.detailOverlay?.addEventListener('click', hideDetail);
-
-    // Marker clicks - delegate to document
-    document.addEventListener('click', (e) => {
-        const dot = e.target.closest('.marker-dot');
-        if (dot && dot.classList.contains('active')) {
-            e.stopPropagation();
-            const index = parseInt(dot.dataset.index, 10);
-            showDetail(index);
-        }
-    });
 
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
