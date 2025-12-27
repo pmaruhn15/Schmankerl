@@ -44,7 +44,7 @@
         .sport-icon {
             width: 120px;
             height: 120px;
-            margin-bottom: 20px;
+            margin: 0 auto 20px auto;
             color: #fff;
             filter: drop-shadow(0 4px 30px rgba(255,255,255,0.3));
             animation: pulse-icon 2s ease-in-out infinite;
@@ -183,28 +183,6 @@
             display: none;
         }
 
-        /* Play/Pause Button */
-        .play-pause {
-            position: fixed;
-            bottom: calc(100px + env(safe-area-inset-bottom));
-            right: 24px;
-            width: 48px;
-            height: 48px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 1001;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .play-pause:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
         /* Credits */
         .credits {
             text-align: center;
@@ -231,8 +209,6 @@
         <div class="sport-name" id="sportName">Sport</div>
         <div class="sport-count" id="sportCount">X Standorte</div>
     </div>
-
-    <button class="play-pause" id="playPause">⏸</button>
 
     <div class="footer">
         <div class="sport-pills" id="sportPills"></div>
@@ -425,7 +401,8 @@
             pill.addEventListener('click', () => {
                 currentIndex = index;
                 showSport(sport);
-                resetAutoPlay();
+                stopAutoPlay();
+                isPlaying = false;
             });
             pillsContainer.appendChild(pill);
         });
@@ -463,16 +440,6 @@
             showSport(sportarten[currentIndex]);
         }
 
-        function togglePlayPause() {
-            isPlaying = !isPlaying;
-            document.getElementById('playPause').textContent = isPlaying ? '⏸' : '▶';
-            if (isPlaying) {
-                startAutoPlay();
-            } else {
-                stopAutoPlay();
-            }
-        }
-
         function startAutoPlay() {
             autoPlayInterval = setInterval(nextSport, 3000);
         }
@@ -481,29 +448,18 @@
             clearInterval(autoPlayInterval);
         }
 
-        function resetAutoPlay() {
-            if (isPlaying) {
-                stopAutoPlay();
-                startAutoPlay();
-            }
-        }
-
-        // Event Listeners
-        document.getElementById('playPause').addEventListener('click', togglePlayPause);
-
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') {
-                e.preventDefault();
-                togglePlayPause();
-            } else if (e.key === 'ArrowRight') {
+            if (e.key === 'ArrowRight') {
                 currentIndex = (currentIndex + 1) % sportarten.length;
                 showSport(sportarten[currentIndex]);
-                resetAutoPlay();
+                stopAutoPlay();
+                isPlaying = false;
             } else if (e.key === 'ArrowLeft') {
                 currentIndex = (currentIndex - 1 + sportarten.length) % sportarten.length;
                 showSport(sportarten[currentIndex]);
-                resetAutoPlay();
+                stopAutoPlay();
+                isPlaying = false;
             }
         });
 
@@ -521,7 +477,8 @@
                     currentIndex = (currentIndex + 1) % sportarten.length;
                 }
                 showSport(sportarten[currentIndex]);
-                resetAutoPlay();
+                stopAutoPlay();
+                isPlaying = false;
             }
         });
 
