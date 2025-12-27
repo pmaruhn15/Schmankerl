@@ -101,6 +101,9 @@ function cacheElements() {
     elements.detailTime = document.getElementById('detailTime');
     elements.detailLocation = document.getElementById('detailLocation');
     elements.detailClose = document.getElementById('detailClose');
+    elements.infoModal = document.getElementById('infoModal');
+    elements.infoOverlay = document.getElementById('infoOverlay');
+    elements.infoClose = document.getElementById('infoClose');
 }
 
 /**
@@ -384,9 +387,21 @@ function hideDetail() {
 }
 
 /**
+ * Hide info modal
+ */
+function hideInfoModal() {
+    elements.infoModal?.classList.add('hidden');
+    elements.infoOverlay?.classList.add('hidden');
+}
+
+/**
  * Setup event listeners
  */
 function setupEventListeners() {
+    // Info modal close
+    elements.infoClose?.addEventListener('click', hideInfoModal);
+    elements.infoOverlay?.addEventListener('click', hideInfoModal);
+
     // Detail card close
     elements.detailClose?.addEventListener('click', hideDetail);
     elements.detailOverlay?.addEventListener('click', hideDetail);
