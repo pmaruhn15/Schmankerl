@@ -1,1 +1,10 @@
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="4" r="2.5"/><path d="M12 6.5v2"/><path d="M10 10h4M10 13h4M10 16h4M10 19h4"/><path d="M12 8.5v12"/><path d="M8 10q2 5 0 10"/><path d="M16 10q-2 5 0 10"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head -->
+  <circle cx="12" cy="4" r="2.5"/>
+  <!-- Shoulders/upper back outline -->
+  <path d="M6 10 Q6 7 12 6.5 Q18 7 18 10"/>
+  <!-- Back muscles - V shape (lats) -->
+  <path d="M8 10 L12 18 L16 10"/>
+  <!-- Spine line -->
+  <path d="M12 7 L12 18"/>
+</svg>
