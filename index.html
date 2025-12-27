@@ -33,7 +33,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+            background: #1a1a1a;
             color: white;
             padding: 20px;
         }
@@ -90,12 +90,12 @@
 
         .location-input input:focus {
             outline: none;
-            border-color: #43a047;
+            border-color: #1a1a1a;
         }
 
         .btn-gps {
             padding: 10px 14px;
-            background: #43a047;
+            background: #1a1a1a;
             color: white;
             border: none;
             border-radius: 8px;
@@ -105,7 +105,7 @@
         }
 
         .btn-gps:hover {
-            background: #2e7d32;
+            background: #333;
         }
 
         .btn-gps:disabled {
@@ -131,12 +131,12 @@
         }
 
         .transport-btn:hover {
-            border-color: #43a047;
+            border-color: #1a1a1a;
         }
 
         .transport-btn.active {
-            border-color: #43a047;
-            background: #e8f5e9;
+            border-color: #1a1a1a;
+            background: #f0f0f0;
         }
 
         .transport-btn .emoji {
@@ -170,7 +170,7 @@
             -webkit-appearance: none;
             width: 20px;
             height: 20px;
-            background: #43a047;
+            background: #1a1a1a;
             border-radius: 50%;
             cursor: pointer;
         }
@@ -179,7 +179,7 @@
             min-width: 60px;
             text-align: right;
             font-weight: 600;
-            color: #43a047;
+            color: #1a1a1a;
         }
 
         /* Dropdown */
@@ -195,7 +195,7 @@
 
         select:focus {
             outline: none;
-            border-color: #43a047;
+            border-color: #1a1a1a;
         }
 
         /* Wochentag-Checkboxen */
@@ -218,12 +218,12 @@
         }
 
         .weekday-btn:hover {
-            border-color: #43a047;
+            border-color: #1a1a1a;
         }
 
         .weekday-btn.active {
-            border-color: #43a047;
-            background: #43a047;
+            border-color: #1a1a1a;
+            background: #1a1a1a;
             color: white;
         }
 
@@ -259,8 +259,8 @@
         }
 
         .result-item.highlighted {
-            background: #e8f5e9;
-            border-left: 3px solid #43a047;
+            background: #f0f0f0;
+            border-left: 3px solid #1a1a1a;
         }
 
         .result-sport {
@@ -283,7 +283,7 @@
         }
 
         .result-distance {
-            color: #43a047;
+            color: #1a1a1a;
             font-weight: 600;
         }
 
@@ -315,7 +315,7 @@
             display: inline-block;
             margin-top: 10px;
             padding: 6px 12px;
-            background: #43a047;
+            background: #1a1a1a;
             color: white;
             text-decoration: none;
             border-radius: 4px;
@@ -323,7 +323,7 @@
         }
 
         .popup-link:hover {
-            background: #2e7d32;
+            background: #333;
         }
 
         /* Footer */
@@ -336,7 +336,8 @@
         }
 
         .footer a {
-            color: #43a047;
+            color: #1a1a1a;
+            font-weight: 600;
         }
 
         /* Responsive */
@@ -376,12 +377,12 @@
 
         /* Isochrone-Legende */
         .isochrone-info {
-            background: #e8f5e9;
-            border: 1px solid #a5d6a7;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
             border-radius: 6px;
             padding: 8px 12px;
             font-size: 0.85rem;
-            color: #2e7d32;
+            color: #1a1a1a;
             margin-top: 8px;
             display: none;
         }
@@ -635,14 +636,14 @@
         };
 
         const kategorieColors = {
-            fitness: '#ff9800',
-            yoga: '#9c27b0',
-            ball: '#4caf50',
-            tanz: '#e91e63',
-            familie: '#00bcd4',
-            senioren: '#795548',
-            outdoor: '#8bc34a',
-            other: '#2196f3'
+            fitness: '#1a1a1a',
+            yoga: '#4a4a4a',
+            ball: '#2a2a2a',
+            tanz: '#3a3a3a',
+            familie: '#5a5a5a',
+            senioren: '#6a6a6a',
+            outdoor: '#7a7a7a',
+            other: '#8a8a8a'
         };
 
         function getKategorie(sportart) {
@@ -673,8 +674,17 @@
         function initMap() {
             map = L.map('map').setView(MUNICH_CENTER, 12);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Labels als separate Schicht (für bessere Lesbarkeit über Markern)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 20,
+                pane: 'shadowPane'
             }).addTo(map);
 
             // Alle Kurse als Marker hinzufügen
@@ -864,7 +874,7 @@
                     icon: L.divIcon({
                         className: 'user-marker',
                         html: `<div style="
-                            background: #1976d2;
+                            background: #1a1a1a;
                             width: 20px;
                             height: 20px;
                             border-radius: 50%;
@@ -912,10 +922,10 @@
                     // Neue Isochrone hinzufügen
                     isochroneLayer = L.geoJSON(data, {
                         style: {
-                            color: '#43a047',
+                            color: '#1a1a1a',
                             weight: 2,
-                            fillColor: '#43a047',
-                            fillOpacity: 0.15
+                            fillColor: '#1a1a1a',
+                            fillOpacity: 0.1
                         }
                     }).addTo(map);
 
