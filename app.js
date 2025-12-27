@@ -20,7 +20,7 @@ const SPORT_ICONS = {
     "Functional Training": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
     "Generation plus": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>`,
     "HIIT": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3 8 6-16 3 8h4"/></svg>`,
-    "Kickbox-Power": `<svg viewBox="0 0 24 24" fill="none" stroke="none"><path d="M5 7c0-2 1.5-3.5 4-3.5h6c3.5 0 6 2.5 6 6.5c0 4-2.5 6.5-6 6.5h-3v5c0 1-1 2-2.5 2h-2c-1.5 0-2.5-1-2.5-2v-5c-1.5-.5-2.5-2-2.5-4V7z" fill="currentColor"/><ellipse cx="4.5" cy="6.5" rx="2.5" ry="3" fill="currentColor"/></svg>`,
+    "Kickbox-Power": `<svg viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="5" cy="5.5" rx="3" ry="3.5" fill="currentColor"/><path d="M7 4c0 0 1-2 4-2c5 0 9 3 9 8s-4 8-9 8H9v-4H7c-2 0-3-1.5-3-3.5c0-2 1-3.5 3-3.5V4z" fill="currentColor"/><rect x="6" y="16" width="10" height="6" rx="1.5" fill="currentColor"/><rect x="8" y="18" width="6" height="2" rx="0.5" fill="white"/></svg>`,
     "Mobility Stretching": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.5"/><path d="M8 8.5L16 12"/><path d="M16 12L20 10"/><path d="M8 8.5L4 18"/><path d="M8 8.5L12 16L16 20"/></svg>`,
     "Nordic Walking": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="3" r="2.5"/><path d="M10 5.5v5"/><path d="M10 8L7 10L3 21"/><path d="M10 8L14 10L18 21"/><path d="M10 10.5L7 20"/><path d="M10 10.5L14 18"/></svg>`,
     "Pilates": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="16" r="2"/><path d="M6 16h10"/><path d="M16 16L20 8"/><path d="M16 16L22 10"/><path d="M2 20h20"/></svg>`,
@@ -37,7 +37,8 @@ const SPORT_ICONS = {
 
 // Active state icons (black on white background) - only for icons that need different rendering
 const SPORT_ICONS_ACTIVE = {
-    "Qi Gong": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18a4.5 4.5 0 0 1 0-9a4.5 4.5 0 0 0 0-9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r="1.2" fill="white" stroke="none"/><circle cx="12" cy="16.5" r="1.2" fill="currentColor" stroke="none"/></svg>`
+    "Qi Gong": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18a4.5 4.5 0 0 1 0-9a4.5 4.5 0 0 0 0-9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r="1.2" fill="white" stroke="none"/><circle cx="12" cy="16.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+    "Kickbox-Power": `<svg viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="5" cy="5.5" rx="3" ry="3.5" fill="currentColor"/><path d="M7 4c0 0 1-2 4-2c5 0 9 3 9 8s-4 8-9 8H9v-4H7c-2 0-3-1.5-3-3.5c0-2 1-3.5 3-3.5V4z" fill="currentColor"/><rect x="6" y="16" width="10" height="6" rx="1.5" fill="currentColor"/></svg>`
 };
 
 /**
