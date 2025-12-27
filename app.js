@@ -95,6 +95,7 @@ function cacheElements() {
     elements.sportName = document.getElementById('sportName');
     elements.sportCount = document.getElementById('sportCount');
     elements.sportPills = document.getElementById('sportPills');
+    elements.uiPanel = document.querySelector('.ui-panel');
     elements.detailCard = document.getElementById('detailCard');
     elements.detailOverlay = document.getElementById('detailOverlay');
     elements.detailTitle = document.getElementById('detailTitle');
@@ -392,6 +393,11 @@ function hideDetail() {
 function hideInfoModal() {
     elements.infoModal?.classList.add('hidden');
     elements.infoOverlay?.classList.add('hidden');
+
+    // Show UI panel after modal slides away
+    setTimeout(() => {
+        elements.uiPanel?.classList.add('visible');
+    }, 200);
 }
 
 /**
