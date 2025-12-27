@@ -297,23 +297,96 @@ function handlePillClick(index) {
     isPlaying = false;
 }
 
+// Track current active sport for transitions
+let currentActiveSport = null;
+let isTransitioning = false;
+
 /**
- * Show a specific sport
+ * Show a specific sport with smooth transition
  */
-function showSport(sport) {
-    // Update markers and z-index
+function showSport(sport, skipTransition = false) {
+    // Skip if already showing this sport or currently transitioning
+    if (sport === currentActiveSport) return;
+    if (isTransitioning && !skipTransition) return;
+
+    const isFirstLoad = currentActiveSport === null;
+    isTransitioning = true;
+
+    // Collect current and new dots
+    const currentDots = [];
+    const newDots = [];
+
     markerElements.forEach(({ marker, sport: markerSport }) => {
         const dot = marker.getElement()?.querySelector('.marker-dot');
-        const isActive = markerSport === sport;
+        if (!dot) return;
 
-        if (dot) {
-            dot.classList.toggle('active', isActive);
+        if (dot.classList.contains('active')) {
+            currentDots.push(dot);
         }
-
-        // Bring active markers to front
-        marker.setZIndexOffset(isActive ? 1000 : 0);
+        if (markerSport === sport) {
+            newDots.push({ dot, marker });
+        }
     });
 
+    // Update UI immediately for responsiveness
+    updateSportUI(sport);
+
+    // For first load or skipTransition, activate immediately
+    if (isFirstLoad || skipTransition) {
+        activateNewMarkers(newDots);
+        currentActiveSport = sport;
+        isTransitioning = false;
+        return;
+    }
+
+    // Phase 1: Fade out current active markers
+    currentDots.forEach(dot => {
+        dot.classList.add('fading-out');
+    });
+
+    // Phase 2: After fade-out, activate new markers
+    setTimeout(() => {
+        // Remove old active states
+        currentDots.forEach(dot => {
+            dot.classList.remove('active', 'fading-out');
+        });
+
+        // Reset z-index for old markers
+        markerElements.forEach(({ marker, sport: markerSport }) => {
+            if (markerSport !== sport) {
+                marker.setZIndexOffset(0);
+            }
+        });
+
+        // Activate new markers
+        activateNewMarkers(newDots);
+
+        currentActiveSport = sport;
+        isTransitioning = false;
+    }, 200); // Fade-out duration
+}
+
+/**
+ * Activate new markers with synced animation
+ */
+function activateNewMarkers(newDots) {
+    newDots.forEach(({ dot, marker }, index) => {
+        // Small random delay for organic feel (0-80ms)
+        const stagger = Math.random() * 0.08;
+        dot.style.setProperty('--pulse-delay', `${stagger}s`);
+
+        // Activate with very slight stagger for wave effect
+        setTimeout(() => {
+            dot.classList.add('active');
+            marker.setZIndexOffset(1000);
+        }, Math.min(index * 3, 100)); // Cap total stagger at 100ms
+    });
+}
+
+/**
+ * Update sport UI elements (icon, name, count, pills)
+ */
+function updateSportUI(sport) {
     // Update info display
     if (elements.sportIcon) {
         elements.sportIcon.innerHTML = SPORT_ICONS[sport] || SPORT_ICONS["Fitness Classic"];
@@ -345,7 +418,8 @@ function nextSport() {
  */
 function startAutoPlay() {
     stopAutoPlay();
-    autoPlayInterval = setInterval(nextSport, 3000);
+    // Longer interval to account for transition time and let users appreciate each sport
+    autoPlayInterval = setInterval(nextSport, 3500);
 }
 
 /**
