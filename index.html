@@ -129,6 +129,92 @@
             text-decoration: none;
         }
 
+        /* Detail Card */
+        .detail-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20,20,20,0.9);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 20px;
+            z-index: 2000;
+            max-width: 300px;
+            width: calc(100% - 40px);
+            display: none;
+        }
+
+        .detail-card.visible {
+            display: block;
+        }
+
+        .detail-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .detail-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .detail-card-close {
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .detail-card-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .detail-card-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-card-label {
+            color: rgba(255,255,255,0.5);
+            min-width: 50px;
+        }
+
+        .detail-card-value {
+            color: #fff;
+        }
+
+        .detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            display: none;
+        }
+
+        .detail-overlay.visible {
+            display: block;
+        }
+
         /* Marker Styles */
         .marker-dot {
             width: 8px;
@@ -166,6 +252,22 @@
 <body>
     <div id="map"></div>
 
+    <div class="detail-overlay" id="detailOverlay"></div>
+    <div class="detail-card" id="detailCard">
+        <div class="detail-card-header">
+            <div class="detail-card-title" id="detailTitle">Sport</div>
+            <button class="detail-card-close" id="detailClose">×</button>
+        </div>
+        <div class="detail-card-row">
+            <span class="detail-card-label">Wann</span>
+            <span class="detail-card-value" id="detailTime"></span>
+        </div>
+        <div class="detail-card-row">
+            <span class="detail-card-label">Wo</span>
+            <span class="detail-card-value" id="detailLocation"></span>
+        </div>
+    </div>
+
     <div class="ui-panel">
         <div class="sport-info">
             <div class="sport-icon" id="sportIcon"></div>
@@ -182,104 +284,104 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Daten mit Koordinaten
+        // Daten mit Koordinaten und Details
         const kurse = [
-            {sport:"Basketball",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Basketball",lat:48.1279771401509,lng:11.5075067600768},
-            {sport:"Basketball",lat:48.1246735599684,lng:11.5820517686975},
-            {sport:"Basketball",lat:48.1256629590613,lng:11.6093521360076},
-            {sport:"BodyART",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Bodystyling",lat:48.100660948552,lng:11.6346674370314},
-            {sport:"Bodystyling",lat:48.1346189745865,lng:11.4940686470807},
-            {sport:"Bodystyling",lat:48.2102916294354,lng:11.5703685254972},
-            {sport:"Bodystyling",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Bodystyling",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Bodystyling",lat:48.1209665824741,lng:11.5220169446252},
-            {sport:"Bodystyling",lat:48.1479112781728,lng:11.5300993440667},
-            {sport:"Core Power",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Core Power",lat:48.1370568078445,lng:11.5690812361836},
-            {sport:"Eltern-Kind-Turnen",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Fatburn",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Female Moves",lat:48.1370568078445,lng:11.5690812361836},
-            {sport:"Fitness Classic",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Fitness Classic",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Fitness Classic",lat:48.1279771401509,lng:11.5075067600768},
-            {sport:"Fitness Classic",lat:48.1646837125794,lng:11.5896287591855},
-            {sport:"Fitness Classic",lat:48.1390086683869,lng:11.4609136868018},
-            {sport:"Fitness Classic",lat:48.1346189745865,lng:11.4940686470807},
-            {sport:"Fitness Classic",lat:48.1313181601876,lng:11.5769218173545},
-            {sport:"Fitness Classic",lat:48.1177097702945,lng:11.6679835260961},
-            {sport:"Fitness Classic",lat:48.1427246062633,lng:11.5615927987124},
-            {sport:"Fitness Classic",lat:48.1246735599684,lng:11.5820517686975},
-            {sport:"Fitness Classic",lat:48.1187884391627,lng:11.5379845551616},
-            {sport:"Fitness Classic",lat:48.1673841294298,lng:11.5829229048892},
-            {sport:"Fitness Classic",lat:48.1317328376132,lng:11.5979120044264},
-            {sport:"Fitness Classic",lat:48.1209665824741,lng:11.5220169446252},
-            {sport:"Fitness Classic",lat:48.1534210212361,lng:11.6380955466952},
-            {sport:"Fitness Classic",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Fitness Power",lat:48.1137719374883,lng:11.4807220191537},
-            {sport:"Fitness Power",lat:48.1650735397573,lng:11.5668824817947},
-            {sport:"Fitness Power",lat:48.1479112781728,lng:11.5300993440667},
-            {sport:"Functional Training",lat:48.2142946460067,lng:11.5311786746011},
-            {sport:"Functional Training",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Generation plus",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Generation plus",lat:48.1063728062163,lng:11.5460941383408},
-            {sport:"HIIT",lat:48.1427246062633,lng:11.5615927987124},
-            {sport:"HIIT",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Kickbox-Power",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Mobility Stretching",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Nordic Walking",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Pilates",lat:48.1646837125794,lng:11.5896287591855},
-            {sport:"Pilates",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Pilates",lat:48.1177097702945,lng:11.6679835260961},
-            {sport:"Pilates",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Pilates",lat:48.1246735599684,lng:11.5820517686975},
-            {sport:"Pilates",lat:48.1187884391627,lng:11.5379845551616},
-            {sport:"Pilates",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Pilates",lat:48.1063728062163,lng:11.5460941383408},
-            {sport:"Pilates",lat:48.1534210212361,lng:11.6380955466952},
-            {sport:"Power Circuit",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Qi Gong",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Qi Gong",lat:48.1673841294298,lng:11.5829229048892},
-            {sport:"Qi Gong",lat:48.1063728062163,lng:11.5460941383408},
-            {sport:"Qi Gong",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Rücken Fitness",lat:48.1427246062633,lng:11.5615927987124},
-            {sport:"Rücken Fitness",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Rücken Fitness",lat:48.1279771401509,lng:11.5075067600768},
-            {sport:"Rücken Fitness",lat:48.1063728062163,lng:11.5460941383408},
-            {sport:"Rücken Fitness",lat:48.1313181601876,lng:11.5769218173545},
-            {sport:"Rücken Fitness",lat:48.1673841294298,lng:11.5829229048892},
-            {sport:"Rücken Fitness",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Rücken Fitness",lat:48.1317328376132,lng:11.5979120044264},
-            {sport:"Rücken Fitness",lat:48.1390086683869,lng:11.4609136868018},
-            {sport:"Rücken Fitness",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Rücken Fitness",lat:48.100660948552,lng:11.6346674370314},
-            {sport:"Rücken Fitness",lat:48.1479112781728,lng:11.5300993440667},
-            {sport:"Silent Disco",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Step Power",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Volleyball",lat:48.1245215834237,lng:11.5689648040697},
-            {sport:"Volleyball",lat:48.1346189745865,lng:11.4940686470807},
-            {sport:"Volleyball",lat:48.1209665824741,lng:11.5220169446252},
-            {sport:"Volleyball",lat:48.2051990314066,lng:11.6006378717619},
-            {sport:"Volleyball",lat:48.2142946460067,lng:11.5311786746011},
-            {sport:"Yoga",lat:48.1383291635933,lng:11.5328140483901},
-            {sport:"Yoga",lat:48.1317328376132,lng:11.5979120044264},
-            {sport:"Yoga",lat:48.1313181601876,lng:11.5769218173545},
-            {sport:"Yoga",lat:48.1370568078445,lng:11.5690812361836},
-            {sport:"Yoga",lat:48.1427246062633,lng:11.5615927987124},
-            {sport:"Yoga",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Yoga",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Yoga",lat:48.141236964191,lng:11.622705815434},
-            {sport:"Yoga",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Yoga",lat:48.1063728062163,lng:11.5460941383408},
-            {sport:"Zirkuskünste",lat:48.1676723817281,lng:11.5279613083889},
-            {sport:"Zumba",lat:48.1383291635933,lng:11.5328140483901},
-            {sport:"Zumba",lat:48.1454129828542,lng:11.562628207656},
-            {sport:"Zumba",lat:48.1277325855402,lng:11.551609288548},
-            {sport:"Zumba",lat:48.1313181601876,lng:11.5769218173545},
-            {sport:"Zumba",lat:48.1370568078445,lng:11.5690812361836},
-            {sport:"Zumba",lat:48.1364816576637,lng:11.5811826538176},
-            {sport:"Zumba",lat:48.1479112781728,lng:11.5300993440667}
+            {sport:"Basketball",lat:48.1454129828542,lng:11.562628207656,tag:"Do",zeit:"20:00-21:30",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Basketball",lat:48.1279771401509,lng:11.5075067600768,tag:"Do",zeit:"19:00-20:30",ort:"Droste-Hülshoff-Str. 9, Laim"},
+            {sport:"Basketball",lat:48.1246735599684,lng:11.5820517686975,tag:"Mo",zeit:"19:00-20:30",ort:"Mariahilfplatz 18"},
+            {sport:"Basketball",lat:48.1256629590613,lng:11.6093521360076,tag:"Do",zeit:"18:00-20:00",ort:"Haagerstr. 18, Berg am Laim"},
+            {sport:"BodyART",lat:48.1454129828542,lng:11.562628207656,tag:"Mo",zeit:"17:00-18:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Bodystyling",lat:48.100660948552,lng:11.6346674370314,tag:"Do",zeit:"17:00-18:00",ort:"Böglstr. 10, Perlach"},
+            {sport:"Bodystyling",lat:48.1346189745865,lng:11.4940686470807,tag:"Do",zeit:"17:00-18:00",ort:"Camerloherstr. 110, Laim"},
+            {sport:"Bodystyling",lat:48.2102916294354,lng:11.5703685254972,tag:"Di",zeit:"19:00-20:30",ort:"Hildegard-von-Bingen-Anger 4, Harthof"},
+            {sport:"Bodystyling",lat:48.1454129828542,lng:11.562628207656,tag:"Do",zeit:"17:00-18:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Bodystyling",lat:48.1277325855402,lng:11.551609288548,tag:"Do",zeit:"18:00-19:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Bodystyling",lat:48.1209665824741,lng:11.5220169446252,tag:"Di",zeit:"17:30-18:30",ort:"Fernpaßstr. 41, Sendling"},
+            {sport:"Bodystyling",lat:48.1479112781728,lng:11.5300993440667,tag:"Do",zeit:"17:00-18:00",ort:"Hirschbergstr. 33, Neuhausen"},
+            {sport:"Core Power",lat:48.1454129828542,lng:11.562628207656,tag:"Do",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Core Power",lat:48.1370568078445,lng:11.5690812361836,tag:"Mo",zeit:"17:00-18:00",ort:"Damenstiftstr. 3, Stadtmitte"},
+            {sport:"Eltern-Kind-Turnen",lat:48.1676723817281,lng:11.5279613083889,tag:"Do",zeit:"10:45-12:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Fatburn",lat:48.1454129828542,lng:11.562628207656,tag:"Mi",zeit:"17:00-18:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Female Moves",lat:48.1370568078445,lng:11.5690812361836,tag:"Di",zeit:"18:00-19:00",ort:"Damenstiftstr. 3, Stadtmitte"},
+            {sport:"Fitness Classic",lat:48.1454129828542,lng:11.562628207656,tag:"Mo",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Fitness Classic",lat:48.1676723817281,lng:11.5279613083889,tag:"Mo",zeit:"17:00-18:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Fitness Classic",lat:48.1279771401509,lng:11.5075067600768,tag:"Di",zeit:"18:00-19:00",ort:"Droste-Hülshoff-Str. 9, Laim"},
+            {sport:"Fitness Classic",lat:48.1646837125794,lng:11.5896287591855,tag:"Do",zeit:"19:00-20:30",ort:"Antonienstr. 6, Schwabing"},
+            {sport:"Fitness Classic",lat:48.1390086683869,lng:11.4609136868018,tag:"Di",zeit:"18:00-19:00",ort:"Bäckerstr. 58, Pasing"},
+            {sport:"Fitness Classic",lat:48.1346189745865,lng:11.4940686470807,tag:"Do",zeit:"18:00-19:00",ort:"Camerloherstr. 110, Laim"},
+            {sport:"Fitness Classic",lat:48.1313181601876,lng:11.5769218173545,tag:"Di",zeit:"17:00-18:00",ort:"Corneliusstr. 17, Isarvorstadt"},
+            {sport:"Fitness Classic",lat:48.1177097702945,lng:11.6679835260961,tag:"Mi",zeit:"18:30-19:30",ort:"Feldbergstr. 85, Trudering"},
+            {sport:"Fitness Classic",lat:48.1427246062633,lng:11.5615927987124,tag:"Mo",zeit:"17:00-18:00",ort:"Luisenstr. 7, Hauptbahnhof"},
+            {sport:"Fitness Classic",lat:48.1246735599684,lng:11.5820517686975,tag:"Di",zeit:"18:00-19:00",ort:"Mariahilfplatz 18"},
+            {sport:"Fitness Classic",lat:48.1187884391627,lng:11.5379845551616,tag:"Mi",zeit:"18:00-19:00",ort:"Meindlstr. 8, Harras"},
+            {sport:"Fitness Classic",lat:48.1673841294298,lng:11.5829229048892,tag:"Mi",zeit:"19:00-20:00",ort:"Simmernstr. 2, Schwabing"},
+            {sport:"Fitness Classic",lat:48.1317328376132,lng:11.5979120044264,tag:"Do",zeit:"18:30-19:30",ort:"Wörthstr. 2, Haidhausen"},
+            {sport:"Fitness Classic",lat:48.1209665824741,lng:11.5220169446252,tag:"Di",zeit:"18:30-19:30",ort:"Fernpaßstr. 41, Sendling"},
+            {sport:"Fitness Classic",lat:48.1534210212361,lng:11.6380955466952,tag:"Do",zeit:"18:00-19:00",ort:"Memeler Str. 53, Bogenhausen"},
+            {sport:"Fitness Classic",lat:48.1277325855402,lng:11.551609288548,tag:"Mi",zeit:"19:00-20:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Fitness Power",lat:48.1137719374883,lng:11.4807220191537,tag:"Di",zeit:"19:00-20:00",ort:"Canisiusplatz 2, Großhadern"},
+            {sport:"Fitness Power",lat:48.1650735397573,lng:11.5668824817947,tag:"Do",zeit:"19:00-20:15",ort:"Hiltenspergerstr. 72, Schwabing"},
+            {sport:"Fitness Power",lat:48.1479112781728,lng:11.5300993440667,tag:"Do",zeit:"18:00-19:00",ort:"Hirschbergstr. 33, Neuhausen"},
+            {sport:"Functional Training",lat:48.2142946460067,lng:11.5311786746011,tag:"Di",zeit:"19:00-20:00",ort:"Lerchenauerstr. 322, Feldmoching"},
+            {sport:"Functional Training",lat:48.1454129828542,lng:11.562628207656,tag:"Do",zeit:"18:00-19:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Generation plus",lat:48.1676723817281,lng:11.5279613083889,tag:"Mo",zeit:"09:45-10:45",ort:"Dantestr. 14, Gern"},
+            {sport:"Generation plus",lat:48.1063728062163,lng:11.5460941383408,tag:"Di",zeit:"09:30-10:30",ort:"Thalkirchnerstr. 209, Thalkirchen"},
+            {sport:"HIIT",lat:48.1427246062633,lng:11.5615927987124,tag:"Di",zeit:"18:00-19:00",ort:"Luisenstr. 7, Hauptbahnhof"},
+            {sport:"HIIT",lat:48.1277325855402,lng:11.551609288548,tag:"Mo",zeit:"18:00-19:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Kickbox-Power",lat:48.1454129828542,lng:11.562628207656,tag:"Mo",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Mobility Stretching",lat:48.1676723817281,lng:11.5279613083889,tag:"Mi",zeit:"18:00-19:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Nordic Walking",lat:48.1676723817281,lng:11.5279613083889,tag:"Di",zeit:"18:15-19:30",ort:"Dantestr. 14, Gern"},
+            {sport:"Pilates",lat:48.1646837125794,lng:11.5896287591855,tag:"Do",zeit:"18:00-19:00",ort:"Antonienstr. 6, Schwabing"},
+            {sport:"Pilates",lat:48.1676723817281,lng:11.5279613083889,tag:"Fr",zeit:"09:00-10:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Pilates",lat:48.1177097702945,lng:11.6679835260961,tag:"Mi",zeit:"19:30-20:30",ort:"Feldbergstr. 85, Trudering"},
+            {sport:"Pilates",lat:48.1454129828542,lng:11.562628207656,tag:"Di",zeit:"18:00-19:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Pilates",lat:48.1246735599684,lng:11.5820517686975,tag:"Di",zeit:"19:00-20:00",ort:"Mariahilfplatz 18"},
+            {sport:"Pilates",lat:48.1187884391627,lng:11.5379845551616,tag:"Mi",zeit:"19:00-20:00",ort:"Meindlstr. 8, Harras"},
+            {sport:"Pilates",lat:48.1277325855402,lng:11.551609288548,tag:"Di",zeit:"17:00-18:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Pilates",lat:48.1063728062163,lng:11.5460941383408,tag:"Di",zeit:"18:00-19:00",ort:"Thalkirchnerstr. 209, Thalkirchen"},
+            {sport:"Pilates",lat:48.1534210212361,lng:11.6380955466952,tag:"Do",zeit:"17:00-18:00",ort:"Memeler Str. 53, Bogenhausen"},
+            {sport:"Power Circuit",lat:48.1454129828542,lng:11.562628207656,tag:"Mo",zeit:"20:00-21:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Qi Gong",lat:48.1676723817281,lng:11.5279613083889,tag:"Fr",zeit:"10:00-11:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Qi Gong",lat:48.1673841294298,lng:11.5829229048892,tag:"Do",zeit:"17:00-18:00",ort:"Simmernstr. 2, Schwabing"},
+            {sport:"Qi Gong",lat:48.1063728062163,lng:11.5460941383408,tag:"Do",zeit:"19:00-20:00",ort:"Thalkirchnerstr. 209, Thalkirchen"},
+            {sport:"Qi Gong",lat:48.1454129828542,lng:11.562628207656,tag:"Mi",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Rücken Fitness",lat:48.1427246062633,lng:11.5615927987124,tag:"Mo",zeit:"18:00-19:00",ort:"Luisenstr. 7, Hauptbahnhof"},
+            {sport:"Rücken Fitness",lat:48.1676723817281,lng:11.5279613083889,tag:"Mi",zeit:"17:00-18:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Rücken Fitness",lat:48.1279771401509,lng:11.5075067600768,tag:"Do",zeit:"18:00-19:00",ort:"Droste-Hülshoff-Str. 9, Laim"},
+            {sport:"Rücken Fitness",lat:48.1063728062163,lng:11.5460941383408,tag:"Do",zeit:"18:00-19:00",ort:"Thalkirchnerstr. 209, Thalkirchen"},
+            {sport:"Rücken Fitness",lat:48.1313181601876,lng:11.5769218173545,tag:"Di",zeit:"18:00-19:00",ort:"Corneliusstr. 17, Isarvorstadt"},
+            {sport:"Rücken Fitness",lat:48.1673841294298,lng:11.5829229048892,tag:"Mi",zeit:"20:00-21:00",ort:"Simmernstr. 2, Schwabing"},
+            {sport:"Rücken Fitness",lat:48.1277325855402,lng:11.551609288548,tag:"Mi",zeit:"18:00-19:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Rücken Fitness",lat:48.1317328376132,lng:11.5979120044264,tag:"Do",zeit:"17:30-18:30",ort:"Wörthstr. 2, Haidhausen"},
+            {sport:"Rücken Fitness",lat:48.1390086683869,lng:11.4609136868018,tag:"Di",zeit:"17:00-18:00",ort:"Bäckerstr. 58, Pasing"},
+            {sport:"Rücken Fitness",lat:48.1454129828542,lng:11.562628207656,tag:"Di",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Rücken Fitness",lat:48.100660948552,lng:11.6346674370314,tag:"Do",zeit:"18:00-19:00",ort:"Böglstr. 10, Perlach"},
+            {sport:"Rücken Fitness",lat:48.1479112781728,lng:11.5300993440667,tag:"Mi",zeit:"18:00-19:00",ort:"Hirschbergstr. 33, Neuhausen"},
+            {sport:"Silent Disco",lat:48.1277325855402,lng:11.551609288548,tag:"Do",zeit:"19:00-20:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Step Power",lat:48.1454129828542,lng:11.562628207656,tag:"Mo",zeit:"18:00-18:45",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Volleyball",lat:48.1245215834237,lng:11.5689648040697,tag:"Mi",zeit:"20:00-21:30",ort:"Auenstr. 19, Glockenbach"},
+            {sport:"Volleyball",lat:48.1346189745865,lng:11.4940686470807,tag:"Do",zeit:"19:00-20:30",ort:"Camerloherstr. 110, Laim"},
+            {sport:"Volleyball",lat:48.1209665824741,lng:11.5220169446252,tag:"Di",zeit:"19:30-21:30",ort:"Fernpaßstr. 41, Sendling"},
+            {sport:"Volleyball",lat:48.2051990314066,lng:11.6006378717619,tag:"Di",zeit:"19:00-20:30",ort:"Keilberthstr. 6, Freimann"},
+            {sport:"Volleyball",lat:48.2142946460067,lng:11.5311786746011,tag:"Di",zeit:"20:00-22:00",ort:"Lerchenauerstr. 322, Feldmoching"},
+            {sport:"Yoga",lat:48.1383291635933,lng:11.5328140483901,tag:"Do",zeit:"19:30-21:30",ort:"Guldeinstr. 27, Westend"},
+            {sport:"Yoga",lat:48.1317328376132,lng:11.5979120044264,tag:"Do",zeit:"17:00-18:00",ort:"Wörthstr. 2, Haidhausen"},
+            {sport:"Yoga",lat:48.1313181601876,lng:11.5769218173545,tag:"Di",zeit:"19:00-20:30",ort:"Corneliusstr. 17, Isarvorstadt"},
+            {sport:"Yoga",lat:48.1370568078445,lng:11.5690812361836,tag:"Mo",zeit:"18:00-19:00",ort:"Damenstiftstr. 3, Stadtmitte"},
+            {sport:"Yoga",lat:48.1427246062633,lng:11.5615927987124,tag:"Mo",zeit:"19:00-20:00",ort:"Luisenstr. 7, Hauptbahnhof"},
+            {sport:"Yoga",lat:48.1277325855402,lng:11.551609288548,tag:"Mo",zeit:"17:00-18:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Yoga",lat:48.1454129828542,lng:11.562628207656,tag:"Di",zeit:"17:00-18:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Yoga",lat:48.141236964191,lng:11.622705815434,tag:"Do",zeit:"18:00-19:00",ort:"Stuntzstr. 55, Bogenhausen"},
+            {sport:"Yoga",lat:48.1676723817281,lng:11.5279613083889,tag:"Di",zeit:"08:30-09:45",ort:"Dantestr. 14, Gern"},
+            {sport:"Yoga",lat:48.1063728062163,lng:11.5460941383408,tag:"Di",zeit:"19:00-20:30",ort:"Thalkirchnerstr. 209, Thalkirchen"},
+            {sport:"Zirkuskünste",lat:48.1676723817281,lng:11.5279613083889,tag:"Mo",zeit:"15:30-17:00",ort:"Dantestr. 14, Gern"},
+            {sport:"Zumba",lat:48.1383291635933,lng:11.5328140483901,tag:"Do",zeit:"18:30-19:30",ort:"Guldeinstr. 27, Westend"},
+            {sport:"Zumba",lat:48.1454129828542,lng:11.562628207656,tag:"Di",zeit:"19:00-20:00",ort:"Luisenstr. 29, Königsplatz"},
+            {sport:"Zumba",lat:48.1277325855402,lng:11.551609288548,tag:"Di",zeit:"18:00-19:00",ort:"Stielerstr. 6, Theresienwiese"},
+            {sport:"Zumba",lat:48.1313181601876,lng:11.5769218173545,tag:"Mi",zeit:"19:00-20:00",ort:"Corneliusstr. 17, Isarvorstadt"},
+            {sport:"Zumba",lat:48.1370568078445,lng:11.5690812361836,tag:"Do",zeit:"18:00-19:00",ort:"Damenstiftstr. 3, Stadtmitte"},
+            {sport:"Zumba",lat:48.1364816576637,lng:11.5811826538176,tag:"Mo",zeit:"19:00-20:00",ort:"Herrnstr. 21, Stadtmitte"},
+            {sport:"Zumba",lat:48.1479112781728,lng:11.5300993440667,tag:"Mo",zeit:"17:00-18:00",ort:"Hirschbergstr. 33, Neuhausen"}
         ];
 
         // SVG Icons für Sportarten
@@ -341,16 +443,49 @@
 
         // Marker erstellen
         const markers = [];
-        kurse.forEach(kurs => {
+        kurse.forEach((kurs, index) => {
             const marker = L.marker([kurs.lat, kurs.lng], {
                 icon: L.divIcon({
                     className: '',
-                    html: `<div class="marker-dot" data-sport="${kurs.sport}"></div>`,
+                    html: `<div class="marker-dot" data-sport="${kurs.sport}" data-index="${index}"></div>`,
                     iconSize: [16, 16],
                     iconAnchor: [8, 8]
                 })
             }).addTo(map);
-            markers.push({ marker, sport: kurs.sport });
+            markers.push({ marker, sport: kurs.sport, index });
+        });
+
+        // Detail Card Funktionen
+        const detailCard = document.getElementById('detailCard');
+        const detailOverlay = document.getElementById('detailOverlay');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailTime = document.getElementById('detailTime');
+        const detailLocation = document.getElementById('detailLocation');
+
+        function showDetail(index) {
+            const kurs = kurse[index];
+            detailTitle.textContent = kurs.sport;
+            detailTime.textContent = `${kurs.tag} ${kurs.zeit}`;
+            detailLocation.textContent = kurs.ort;
+            detailCard.classList.add('visible');
+            detailOverlay.classList.add('visible');
+        }
+
+        function hideDetail() {
+            detailCard.classList.remove('visible');
+            detailOverlay.classList.remove('visible');
+        }
+
+        document.getElementById('detailClose').addEventListener('click', hideDetail);
+        detailOverlay.addEventListener('click', hideDetail);
+
+        // Marker Klick-Handler
+        document.addEventListener('click', (e) => {
+            const dot = e.target.closest('.marker-dot');
+            if (dot && dot.classList.contains('active')) {
+                const index = parseInt(dot.dataset.index);
+                showDetail(index);
+            }
         });
 
         // Sport-Pills erstellen
