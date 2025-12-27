@@ -24,30 +24,32 @@
             height: 100dvh;
         }
 
-        /* Overlay für Sportart-Anzeige */
-        .sport-display {
+        /* Bottom UI Panel */
+        .ui-panel {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
             z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        .sport-display.active {
-            opacity: 1;
+        .sport-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .sport-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px auto;
+            width: 48px;
+            height: 48px;
             color: #fff;
-            filter: drop-shadow(0 4px 30px rgba(255,255,255,0.3));
-            animation: pulse-icon 2s ease-in-out infinite;
+            flex-shrink: 0;
         }
 
         .sport-icon svg {
@@ -55,73 +57,40 @@
             height: 100%;
         }
 
-        @keyframes pulse-icon {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
+        .sport-text {
+            flex: 1;
+            min-width: 0;
         }
 
         .sport-name {
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: #fff;
-            text-shadow: 0 2px 20px rgba(0,0,0,0.8);
-            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sport-count {
-            font-size: 1.2rem;
-            color: rgba(255,255,255,0.8);
-            margin-top: 8px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        }
-
-        /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 24px;
-            padding-top: calc(24px + env(safe-area-inset-top));
-            z-index: 1000;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
-        }
-
-        .header h1 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #fff;
-            text-align: center;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        /* Footer / Progress */
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 24px;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom));
-            z-index: 1000;
-            background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 2px;
         }
 
         .sport-pills {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
         }
 
         .sport-pill {
-            width: 36px;
-            height: 36px;
-            padding: 8px;
-            background: rgba(255,255,255,0.08);
+            width: 32px;
+            height: 32px;
+            padding: 6px;
+            background: rgba(255,255,255,0.1);
             border-radius: 50%;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.5);
             transition: all 0.3s ease;
             cursor: pointer;
             display: flex;
@@ -137,17 +106,26 @@
         .sport-pill.active {
             background: #fff;
             color: #000;
-            box-shadow: 0 0 20px rgba(255,255,255,0.4);
         }
 
         .sport-pill:hover {
-            background: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.2);
         }
 
         .sport-pill.active:hover {
             background: #fff;
-            color: #000;
+        }
+
+        .credits {
+            text-align: center;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.3);
+            margin-top: 10px;
+        }
+
+        .credits a {
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
         }
 
         /* Marker Styles */
@@ -182,39 +160,22 @@
         .leaflet-control-attribution {
             display: none;
         }
-
-        /* Credits */
-        .credits {
-            text-align: center;
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.4);
-            margin-top: 12px;
-        }
-
-        .credits a {
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
-    <div class="header">
-        <h1>Freizeitsport München</h1>
-    </div>
-
-    <div class="sport-display" id="sportDisplay">
-        <div class="sport-icon" id="sportIcon"></div>
-        <div class="sport-name" id="sportName">Sport</div>
-        <div class="sport-count" id="sportCount">X Standorte</div>
-    </div>
-
-    <div class="footer">
+    <div class="ui-panel">
+        <div class="sport-info">
+            <div class="sport-icon" id="sportIcon"></div>
+            <div class="sport-text">
+                <div class="sport-name" id="sportName">Sport</div>
+                <div class="sport-count" id="sportCount">X Standorte</div>
+            </div>
+        </div>
         <div class="sport-pills" id="sportPills"></div>
         <div class="credits">
-            Daten: <a href="https://opendata.muenchen.de">opendata.muenchen.de</a> ·
-            <a href="https://datengartln.de">Datengartln</a> Schmankerl
+            <a href="https://opendata.muenchen.de">opendata.muenchen.de</a> · <a href="https://datengartln.de">Datengartln</a>
         </div>
     </div>
 
@@ -423,11 +384,9 @@
             });
 
             // Display aktualisieren
-            const display = document.getElementById('sportDisplay');
             document.getElementById('sportIcon').innerHTML = sportIcons[sport] || sportIcons["Fitness Classic"];
             document.getElementById('sportName').textContent = sport;
             document.getElementById('sportCount').textContent = `${sportCounts[sport]} Standort${sportCounts[sport] > 1 ? 'e' : ''}`;
-            display.classList.add('active');
 
             // Pills aktualisieren
             document.querySelectorAll('.sport-pill').forEach((pill, i) => {
