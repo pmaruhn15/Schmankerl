@@ -243,7 +243,9 @@ body {
     border-radius: 20px;
     padding: 20px;
     z-index: 2000;
-    max-width: 300px;
+    max-width: 320px;
+    max-height: 70vh;
+    overflow-y: auto;
     width: calc(100% - 40px);
     opacity: 0;
     pointer-events: none;
@@ -260,7 +262,20 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.detail-card-location {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
     margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.detail-card-courses {
+    display: flex;
+    flex-direction: column;
 }
 
 .detail-card-title {
@@ -307,6 +322,35 @@ body {
 
 .detail-card-value {
     color: #fff;
+}
+
+/* Course list in detail card */
+.course-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.course-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.course-item:first-child {
+    padding-top: 0;
+}
+
+.course-time {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.course-desc {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.8rem;
 }
 
 /* Info Modal */

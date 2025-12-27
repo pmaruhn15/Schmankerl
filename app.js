@@ -179,8 +179,12 @@ function parseCSV(csvText) {
         const hausnummer = values[6];
         const stadtteil = values[8];
 
+        // Extract description/details (e.g., age groups)
+        const beschreibung = values[1].trim();
+
         result.push({
             sport: sportName,
+            beschreibung: beschreibung,
             lat: lat,
             lng: lng,
             tag: tag,
@@ -396,7 +400,7 @@ function updateSportUI(sport) {
     }
     if (elements.sportCount) {
         const count = sportCounts[sport] || 0;
-        elements.sportCount.textContent = `${count} Standort${count !== 1 ? 'e' : ''}`;
+        elements.sportCount.textContent = `${count} Kurs${count !== 1 ? 'e' : ''}`;
     }
 
     // Update pills
@@ -433,20 +437,51 @@ function stopAutoPlay() {
 }
 
 /**
- * Show detail card for a course
+ * Show detail card for a course - shows all courses at same location
  */
 function showDetail(index) {
     const kurs = kurse[index];
     if (!kurs) return;
 
+    // Find all courses at the same location with the same sport
+    const coursesAtLocation = kurse.filter(k =>
+        k.sport === kurs.sport &&
+        k.lat === kurs.lat &&
+        k.lng === kurs.lng
+    );
+
     if (elements.detailTitle) {
         elements.detailTitle.textContent = kurs.sport;
     }
-    if (elements.detailTime) {
-        elements.detailTime.textContent = `${kurs.tag} ${kurs.zeit}`;
-    }
+
     if (elements.detailLocation) {
         elements.detailLocation.textContent = kurs.ort;
+    }
+
+    // Build course list HTML
+    if (elements.detailTime) {
+        if (coursesAtLocation.length === 1) {
+            // Single course - simple display
+            const beschr = kurs.beschreibung !== kurs.sport ? kurs.beschreibung : '';
+            elements.detailTime.innerHTML = `
+                <div class="course-item">
+                    <span class="course-time">${kurs.tag} ${kurs.zeit}</span>
+                    ${beschr ? `<span class="course-desc">${beschr}</span>` : ''}
+                </div>
+            `;
+        } else {
+            // Multiple courses - show list
+            const courseListHTML = coursesAtLocation.map(k => {
+                const beschr = k.beschreibung !== k.sport ? k.beschreibung : '';
+                return `
+                    <div class="course-item">
+                        <span class="course-time">${k.tag} ${k.zeit}</span>
+                        ${beschr ? `<span class="course-desc">${beschr}</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+            elements.detailTime.innerHTML = courseListHTML;
+        }
     }
 
     elements.detailCard?.classList.add('visible');

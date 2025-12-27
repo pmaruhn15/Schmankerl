@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sport in München</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
     <div id="map"></div>
@@ -32,14 +32,8 @@
             <div class="detail-card-title" id="detailTitle">Sport</div>
             <button class="detail-card-close" id="detailClose">×</button>
         </div>
-        <div class="detail-card-row">
-            <span class="detail-card-label">Wann</span>
-            <span class="detail-card-value" id="detailTime"></span>
-        </div>
-        <div class="detail-card-row">
-            <span class="detail-card-label">Wo</span>
-            <span class="detail-card-value" id="detailLocation"></span>
-        </div>
+        <div class="detail-card-location" id="detailLocation"></div>
+        <div class="detail-card-courses" id="detailTime"></div>
     </div>
 
     <div class="ui-panel">
@@ -57,6 +51,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
 </body>
 </html>
