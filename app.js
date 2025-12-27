@@ -35,6 +35,21 @@ const SPORT_ICONS = {
     "Zumba": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2.5"/><path d="M12 6.5L13 12"/><path d="M13 9L9 6"/><path d="M13 9L17 7"/><path d="M13 12L9 21"/><path d="M13 12L17 19"/></svg>`
 };
 
+// Active state icons (black on white background) - only for icons that need different rendering
+const SPORT_ICONS_ACTIVE = {
+    "Qi Gong": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18a4.5 4.5 0 0 1 0-9a4.5 4.5 0 0 0 0-9" fill="currentColor"/><circle cx="12" cy="7.5" r="1.5" fill="white" stroke="none"/><circle cx="12" cy="16.5" r="1.5" fill="currentColor" stroke="none"/></svg>`
+};
+
+/**
+ * Get icon for a sport, optionally for active state
+ */
+function getIcon(sport, isActive = false) {
+    if (isActive && SPORT_ICONS_ACTIVE[sport]) {
+        return SPORT_ICONS_ACTIVE[sport];
+    }
+    return SPORT_ICONS[sport] || SPORT_ICONS["Fitness Classic"];
+}
+
 // Sport name mapping (CSV name -> Display name)
 const SPORT_NAME_MAP = {
     "BodyART®": "BodyART",
@@ -284,7 +299,8 @@ function createPills() {
     sportarten.forEach((sport, index) => {
         const pill = document.createElement('div');
         pill.className = 'sport-pill';
-        pill.innerHTML = SPORT_ICONS[sport] || SPORT_ICONS["Fitness Classic"];
+        pill.innerHTML = getIcon(sport, false);
+        pill.dataset.sport = sport;
         pill.dataset.index = index;
         pill.addEventListener('click', () => handlePillClick(index));
         elements.sportPills.appendChild(pill);
@@ -391,9 +407,9 @@ function activateNewMarkers(newDots) {
  * Update sport UI elements (icon, name, count, pills)
  */
 function updateSportUI(sport) {
-    // Update info display
+    // Update info display (always use inactive/default icon for large display)
     if (elements.sportIcon) {
-        elements.sportIcon.innerHTML = SPORT_ICONS[sport] || SPORT_ICONS["Fitness Classic"];
+        elements.sportIcon.innerHTML = getIcon(sport, false);
     }
     if (elements.sportName) {
         elements.sportName.textContent = sport;
@@ -403,9 +419,13 @@ function updateSportUI(sport) {
         elements.sportCount.textContent = `${count} Kurs${count !== 1 ? 'e' : ''}`;
     }
 
-    // Update pills
-    document.querySelectorAll('.sport-pill').forEach((pill, i) => {
-        pill.classList.toggle('active', sportarten[i] === sport);
+    // Update pills - swap icons based on active state
+    document.querySelectorAll('.sport-pill').forEach((pill) => {
+        const pillSport = pill.dataset.sport;
+        const isActive = pillSport === sport;
+        pill.classList.toggle('active', isActive);
+        // Update icon to match active/inactive state
+        pill.innerHTML = getIcon(pillSport, isActive);
     });
 }
 
