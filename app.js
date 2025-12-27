@@ -108,9 +108,13 @@ function cacheElements() {
  */
 async function loadData() {
     try {
+        console.log('Fetching:', DATA_URL);
         const response = await fetch(DATA_URL);
+        console.log('Response status:', response.status);
         const csvText = await response.text();
+        console.log('CSV length:', csvText.length);
         kurse = parseCSV(csvText);
+        console.log('Parsed courses:', kurse.length);
 
         // Count sports and create sorted list
         sportCounts = {};
@@ -137,9 +141,17 @@ async function loadData() {
  * Parse CSV text into structured data
  */
 function parseCSV(csvText) {
+    // Remove BOM if present
+    if (csvText.charCodeAt(0) === 0xFEFF) {
+        csvText = csvText.slice(1);
+    }
+
     const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',');
+    const headers = parseCSVLine(lines[0]);
     const result = [];
+
+    console.log('CSV Headers:', headers);
+    console.log('Total lines:', lines.length);
 
     for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
