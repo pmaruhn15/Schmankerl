@@ -150,8 +150,7 @@ body {
     height: 10px;
     background: rgba(255,255,255,0.25);
     border-radius: 50%;
-    pointer-events: auto;
-    cursor: pointer;
+    pointer-events: none;
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -162,6 +161,8 @@ body {
     background: #fff;
     box-shadow: 0 0 12px rgba(255,255,255,0.9), 0 0 24px rgba(255,255,255,0.5);
     animation: pulse-marker 2s ease-in-out infinite;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 @keyframes pulse-marker {
