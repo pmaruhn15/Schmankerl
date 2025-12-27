@@ -4,7 +4,7 @@
  * Version: 1.0.0
  */
 
-const DATA_URL = 'https://opendata.muenchen.de/dataset/2e8a06d3-3b9d-4a4f-a19d-bc9bb74db160/resource/c242c94b-4d18-4259-90a5-7e474179de47/download/hallensportprogramm_2025_2026.csv';
+const DATA_URL = 'hallensportprogramm_2025_2026.csv';
 
 // Sport Icons (SVG)
 const SPORT_ICONS = {
