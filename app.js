@@ -511,7 +511,7 @@ function showDetail(index) {
         if (kurs.webseite) {
             coursesHTML += `
                 <a href="${kurs.webseite}" target="_blank" rel="noopener" class="course-link">
-                    Zur Anmeldung →
+                    Mehr erfahren →
                 </a>
             `;
         }
