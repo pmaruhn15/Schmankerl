@@ -147,19 +147,6 @@ body {
     background: rgba(255,255,255,0.95);
 }
 
-/* Credits */
-.credits {
-    text-align: center;
-    font-size: 0.6rem;
-    color: rgba(255,255,255,0.3);
-    margin-top: 10px;
-}
-
-.credits a {
-    color: rgba(255,255,255,0.4);
-    text-decoration: none;
-}
-
 /* Map Markers */
 .marker-container {
     cursor: pointer;
@@ -438,6 +425,15 @@ body {
     font-size: 0.75rem;
     color: rgba(255,255,255,0.4);
     margin-bottom: 24px;
+}
+
+.info-modal-source a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: underline;
+}
+
+.info-modal-source a:hover {
+    color: rgba(255,255,255,0.9);
 }
 
 .info-modal-button {
