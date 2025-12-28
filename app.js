@@ -206,7 +206,8 @@ function parseCSV(csvText) {
             lng: lng,
             tag: tag,
             zeit: `${zeitStart}-${zeitEnd}`,
-            ort: `${strasse} ${hausnummer}${stadtteil ? ', ' + stadtteil : ''}`
+            ort: `${strasse} ${hausnummer}${stadtteil ? ', ' + stadtteil : ''}`,
+            webseite: values[13] ? values[13].trim() : ''
         });
     }
 
@@ -482,10 +483,12 @@ function showDetail(index) {
 
     // Build course list HTML
     if (elements.detailTime) {
+        let coursesHTML = '';
+
         if (coursesAtLocation.length === 1) {
             // Single course - simple display
             const beschr = kurs.beschreibung !== kurs.sport ? kurs.beschreibung : '';
-            elements.detailTime.innerHTML = `
+            coursesHTML = `
                 <div class="course-item">
                     <span class="course-time">${kurs.tag} ${kurs.zeit}</span>
                     ${beschr ? `<span class="course-desc">${beschr}</span>` : ''}
@@ -493,7 +496,7 @@ function showDetail(index) {
             `;
         } else {
             // Multiple courses - show list
-            const courseListHTML = coursesAtLocation.map(k => {
+            coursesHTML = coursesAtLocation.map(k => {
                 const beschr = k.beschreibung !== k.sport ? k.beschreibung : '';
                 return `
                     <div class="course-item">
@@ -502,8 +505,18 @@ function showDetail(index) {
                     </div>
                 `;
             }).join('');
-            elements.detailTime.innerHTML = courseListHTML;
         }
+
+        // Add website link if available
+        if (kurs.webseite) {
+            coursesHTML += `
+                <a href="${kurs.webseite}" target="_blank" rel="noopener" class="course-link">
+                    Zur Anmeldung →
+                </a>
+            `;
+        }
+
+        elements.detailTime.innerHTML = coursesHTML;
     }
 
     elements.detailCard?.classList.add('visible');

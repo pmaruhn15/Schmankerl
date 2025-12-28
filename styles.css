@@ -358,6 +358,23 @@ body {
     font-size: 0.8rem;
 }
 
+.course-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: rgba(8, 146, 137, 0.8);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.course-link:hover {
+    background: rgba(8, 146, 137, 1);
+}
+
 /* Info Modal */
 .info-overlay {
     position: fixed;
