@@ -60,6 +60,7 @@ const SPORT_NAME_MAP = {
     "Fitness für Frauen": "Fitness Classic",
     "HIIT - High.intensity interval training": "HIIT",
     "Mobility Streching": "Mobility Stretching",
+    "Nordic Walking + Gym": "Nordic Walking",
     "Power Circuit Training": "Power Circuit",
     "Rücken Fitness": "Rücken Fitness",
     "Silent Disco Groove": "Silent Disco",
