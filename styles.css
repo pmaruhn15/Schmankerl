@@ -458,39 +458,39 @@ body {
         left: 24px;
         right: auto;
         bottom: 24px;
-        width: 360px;
+        width: 420px;
         border-radius: 20px;
-        padding: 20px;
-        padding-bottom: 20px;
+        padding: 24px;
+        padding-bottom: 24px;
     }
 
     .sport-info {
-        gap: 14px;
-        margin-bottom: 14px;
+        gap: 16px;
+        margin-bottom: 16px;
     }
 
     .sport-icon {
-        width: 56px;
-        height: 56px;
+        width: 72px;
+        height: 72px;
     }
 
     .sport-name {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
     }
 
     .sport-count {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .sport-pills {
-        gap: 8px;
+        gap: 10px;
         justify-content: flex-start;
     }
 
     .sport-pill {
-        width: 38px;
-        height: 38px;
-        padding: 8px;
+        width: 44px;
+        height: 44px;
+        padding: 9px;
     }
 
     .sport-pill:hover {
@@ -519,23 +519,23 @@ body {
     .ui-panel {
         left: 32px;
         bottom: 32px;
-        width: 400px;
-        padding: 24px;
+        width: 460px;
+        padding: 28px;
     }
 
     .sport-icon {
-        width: 64px;
-        height: 64px;
+        width: 80px;
+        height: 80px;
     }
 
     .sport-name {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 
     .sport-pill {
-        width: 42px;
-        height: 42px;
-        padding: 9px;
+        width: 48px;
+        height: 48px;
+        padding: 10px;
     }
 }
 
