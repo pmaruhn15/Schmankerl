@@ -14,15 +14,10 @@ const SPORT_ICON_FILES = [
     "Basketball", "BodyART", "Bodystyling", "Boxen", "Core Power",
     "Eltern-Kind-Turnen", "Fatburn", "Female Moves", "Fitness Classic",
     "Fitness Power", "Functional Training", "Generation plus", "HIIT",
-    "Kickbox-Power", "Mobility Stretching", "Nordic Walking", "Power Circuit",
-    "Qi Gong", "Rücken Fitness", "Silent Disco", "Step Power",
-    "Volleyball", "Yoga", "Zirkuskünste", "Zumba"
+    "Kickbox-Power", "Mobility Stretching", "Nordic Walking", "Pilates",
+    "Power Circuit", "Qi Gong", "Rücken Fitness", "Silent Disco",
+    "Step Power", "Volleyball", "Yoga", "Zirkuskünste", "Zumba"
 ];
-
-// Fallback-Icon für Pilates (kein Recraft-Icon vorhanden)
-const FALLBACK_ICONS = {
-    "Pilates": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="16" r="2"/><path d="M6 16h10"/><path d="M16 16L20 8"/><path d="M16 16L22 10"/><path d="M2 20h20"/></svg>`
-};
 
 /**
  * Lädt alle Sport-Icons aus externen SVG-Dateien
@@ -43,9 +38,6 @@ async function loadSportIcons() {
     });
 
     await Promise.all(loadPromises);
-
-    // Füge Fallback-Icons hinzu
-    Object.assign(SPORT_ICONS, FALLBACK_ICONS);
 }
 
 // Active state icons werden nicht mehr benötigt - externe SVGs verwenden currentColor
